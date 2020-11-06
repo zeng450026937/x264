@@ -83,7 +83,9 @@ const x264_cpu_name_t x264_cpu_names[] =
     {"SlowShuffle",     X264_CPU_SLOW_SHUFFLE},
     {"UnalignedStack",  X264_CPU_STACK_MOD4},
 #elif ARCH_PPC
+    {"PPC64",           X264_CPU_PPC64},
     {"Altivec",         X264_CPU_ALTIVEC},
+    {"ARCH_2_07",       X264_CPU_ARCH_2_07},
 #elif ARCH_ARM
     {"ARMv6",           X264_CPU_ARMV6},
     {"NEON",            X264_CPU_NEON},
@@ -97,7 +99,7 @@ const x264_cpu_name_t x264_cpu_names[] =
     {"", 0},
 };
 
-#if (HAVE_ALTIVEC && SYS_LINUX) || (HAVE_ARMV6 && !HAVE_NEON)
+#if HAVE_ARMV6 && !HAVE_NEON
 #include <signal.h>
 #include <setjmp.h>
 static sigjmp_buf jmpbuf;
@@ -300,7 +302,7 @@ uint32_t x264_cpu_detect( void )
 
 #elif HAVE_ALTIVEC
 
-#if SYS_MACOSX || SYS_OPENBSD || SYS_FREEBSD
+#if SYS_MACOSX || SYS_OPENBSD
 #include <sys/sysctl.h>
 uint32_t x264_cpu_detect( void )
 {
@@ -325,33 +327,60 @@ uint32_t x264_cpu_detect( void )
     return cpu;
 }
 
-#elif SYS_LINUX
+/* Defines from Linux kernel 'arch/powerpc/include/uapi/asm/cputable.h' */
+#ifndef PPC_FEATURE_64	
+#define PPC_FEATURE_64          0x40000000
+#endif
+#ifndef PPC_FEATURE_HAS_ALTIVEC	
+#define PPC_FEATURE_HAS_ALTIVEC 0x10000000
+#endif
+#ifndef PPC_FEATURE2_ARCH_2_07	
+#define PPC_FEATURE2_ARCH_2_07  0x80000000
+#endif
 
+#elif SYS_FREEBSD
+#include <sys/param.h>
+#if __FreeBSD__ >= 12
+#include <sys/auxv.h>
+#endif
 uint32_t x264_cpu_detect( void )
 {
-#ifdef __NO_FPRS__
-    return 0;
+    uint32_t flags = 0;
+    unsigned long hwcap = 0;
+    unsigned long hwcap2 = 0;
+#if __FreeBSD__ >= 12
+    elf_aux_info(AT_HWCAP, &hwcap, sizeof(hwcap));
+    elf_aux_info(AT_HWCAP2, &hwcap2, sizeof(hwcap2));
 #else
-    static void (*oldsig)( int );
-
-    oldsig = signal( SIGILL, sigill_handler );
-    if( sigsetjmp( jmpbuf, 1 ) )
-    {
-        signal( SIGILL, oldsig );
-        return 0;
-    }
-
-    canjump = 1;
-    asm volatile( "mtspr 256, %0\n\t"
-                  "vand 0, 0, 0\n\t"
-                  :
-                  : "r"(-1) );
-    canjump = 0;
-
-    signal( SIGILL, oldsig );
-
-    return X264_CPU_ALTIVEC;
+    size_t len = sizeof(hwcap);
+    int error = sysctlbyname("hw.cpu_features", &hwcap, &len, NULL, 0);
+    if (error != 0)
+        return flags;
+    len = sizeof(hwcap2);
+    error = sysctlbyname("hw.cpu_features2", &hwcap2, &len, NULL, 0);
 #endif
+    if (hwcap & PPC_FEATURE_64)
+        flags |= X264_CPU_PPC64;
+    if (hwcap & PPC_FEATURE_HAS_ALTIVEC)
+        flags |= X264_CPU_ALTIVEC;
+    if (error == 0 && (hwcap2 & PPC_FEATURE2_ARCH_2_07) != 0)
+        flags |= X264_CPU_ARCH_2_07;
+}
+
+#elif SYS_LINUX
+#include <sys/auxv.h>
+uint32_t x264_cpu_detect( void )
+{
+    uint32_t flags = 0;
+    unsigned long hwcap = getauxval(AT_HWCAP);
+    unsigned long hwcap2 = getauxval(AT_HWCAP2);
+    if (hwcap & PPC_FEATURE_64)
+        flags |= X264_CPU_PPC64;
+    if (hwcap & PPC_FEATURE_HAS_ALTIVEC)
+        flags |= X264_CPU_ALTIVEC;
+    if (hwcap2 & PPC_FEATURE2_ARCH_2_07)
+        flags |= X264_CPU_ARCH_2_07;
+    return flags;
 }
 #endif
 
