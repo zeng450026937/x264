@@ -365,6 +365,7 @@ uint32_t x264_cpu_detect( void )
         flags |= X264_CPU_ALTIVEC;
     if (error == 0 && (hwcap2 & PPC_FEATURE2_ARCH_2_07) != 0)
         flags |= X264_CPU_ARCH_2_07;
+    return flags;
 }
 
 #elif SYS_LINUX
