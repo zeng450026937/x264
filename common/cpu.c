@@ -43,8 +43,10 @@
 #include <machine/cpu.h>
 #endif
 
-#if HAVE_ALTIVEC && SYS_LINUX && defined(__GLIBC__) && defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 16)
+#if HAVE_ALTIVEC && SYS_LINUX
+#if defined(__GLIBC__) && defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 16)
 #define PPC_USE_GETAUXVAL
+#endif
 #endif
 
 const x264_cpu_name_t x264_cpu_names[] =
