@@ -43,6 +43,10 @@
 #include <machine/cpu.h>
 #endif
 
+#if HAVE_ALTIVEC && SYS_LINUX && defined(__GLIBC__) && defined(__GLIBC_PREREQ) && __GLIBC_PREREQ(2, 16)
+#define PPC_USE_GETAUXVAL
+#endif
+
 const x264_cpu_name_t x264_cpu_names[] =
 {
 #if ARCH_X86 || ARCH_X86_64
@@ -99,7 +103,7 @@ const x264_cpu_name_t x264_cpu_names[] =
     {"", 0},
 };
 
-#if HAVE_ARMV6 && !HAVE_NEON
+#if (HAVE_ALTIVEC && SYS_LINUX && !defined(PPC_USE_GETAUXVAL)) || (HAVE_ARMV6 && !HAVE_NEON)
 #include <signal.h>
 #include <setjmp.h>
 static sigjmp_buf jmpbuf;
@@ -349,8 +353,10 @@ uint32_t x264_cpu_detect( void )
     unsigned long hwcap = 0;
     unsigned long hwcap2 = 0;
 #if __FreeBSD__ >= 12
-    elf_aux_info(AT_HWCAP, &hwcap, sizeof(hwcap));
-    elf_aux_info(AT_HWCAP2, &hwcap2, sizeof(hwcap2));
+    int error = elf_aux_info(AT_HWCAP, &hwcap, sizeof(hwcap));
+    if (error != 0)
+        return flags;
+    error = elf_aux_info(AT_HWCAP2, &hwcap2, sizeof(hwcap2));
 #else
     size_t len = sizeof(hwcap);
     int error = sysctlbyname("hw.cpu_features", &hwcap, &len, NULL, 0);
@@ -369,6 +375,7 @@ uint32_t x264_cpu_detect( void )
 }
 
 #elif SYS_LINUX
+#ifdef PPC_USE_GETAUXVAL
 #include <sys/auxv.h>
 uint32_t x264_cpu_detect( void )
 {
@@ -383,6 +390,47 @@ uint32_t x264_cpu_detect( void )
         flags |= X264_CPU_ARCH_2_07;
     return flags;
 }
+#else
+uint32_t x264_cpu_detect( void )
+{
+#ifdef __NO_FPRS__
+    return 0;
+#else
+    static void (*oldsig)( int );
+
+    oldsig = signal( SIGILL, sigill_handler );
+    if( sigsetjmp( jmpbuf, 1 ) )
+    {
+        signal( SIGILL, oldsig );
+        return 0;
+    }
+
+    canjump = 1;
+    asm volatile( "mtspr 256, %0\n\t"
+                  "vand 0, 0, 0\n\t"
+                  :
+                  : "r"(-1) );
+    canjump = 0;
+
+    if( sigsetjmp( jmpbuf, 1 ) )
+    {
+        signal( SIGILL, oldsig );
+        return X264_CPU_PPC64 | X264_CPU_ALTIVEC;
+    }
+
+    canjump = 1;
+    asm volatile( "mtspr 256, %0\n\t"
+                  "vnand 0, 0, 0\n\t"
+                  :
+                  : "r"(-1) );
+    canjump = 0;
+
+    signal( SIGILL, oldsig );
+
+    return X264_CPU_PPC64 | X264_CPU_ALTIVEC | X264_CPU_ARCH_2_07;
+#endif
+}
+#endif
 #endif
 
 #elif HAVE_ARMV6
