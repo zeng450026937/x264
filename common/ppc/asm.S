@@ -226,12 +226,14 @@ EXTERN_ASM\name:
 .endm
 
 .macro VEC_LOAD_DATA   VR, DATA, GPR
-    ld            \GPR,\DATA@got(2)
+    addis         \GPR,2,\DATA@got@ha
+    ld            \GPR,\DATA@got@l(\GPR)
     lvx           \VR,0,\GPR
 .endm
 
 .macro LOAD_DATA_ADDRESS   GPR, DATA
-    ld            \GPR,\DATA@got(2)
+    addis         \GPR,2,\DATA@got@ha
+    ld            \GPR,\DATA@got@l(\GPR)
 .endm
 
 .macro HALFWORD_DATA_SPLAT_BYTE   VR, DATA, IDX, GPR
