@@ -58,7 +58,7 @@
     vslh        7,7,9
     vspltish    8,6
     mtctr       10
-3:  // height loop
+4:  // height loop
     LOAD_4_BYTE_H 0,5,0
     LOAD_4_BYTE_H 1,7,0
     add         5,5,6
@@ -81,7 +81,7 @@
     add         3,3,4
     STORE_4_BYTE_H 1,3,0
     add         3,3,4
-    bdnz        3b
+    bdnz        4b
 .endm
 
 .macro avg_weight_w8 ext,  h
@@ -95,7 +95,7 @@
     vslh        11,11,13
     vspltish    12,6
     mtctr       10
-3:  // height loop
+4:  // height loop
     LOAD_8_BYTE_H 0,5,0,9
     LOAD_8_BYTE_H 1,7,0,10
     add         5,5,6
@@ -148,7 +148,7 @@
     add         3,3,4
     STORE_8_BYTE_H 6,3,0,10
     add         3,3,4
-    bdnz        3b
+    bdnz        4b
 .endm
 
 .macro avg_weight_w16 ext,  h
@@ -163,7 +163,7 @@
     vslh        11,11,13
     vspltish    12,6
     mtctr       10
-3:  // height loop
+4:  // height loop
     LOAD_16_BYTE 0,5,0
     LOAD_16_BYTE 1,7,0
     add         5,5,6
@@ -202,7 +202,86 @@
     add         3,3,4
     STORE_16_BYTE 4,3,0
     add         3,3,4
-    bdnz        3b
+    bdnz        4b
+.endm
+
+.macro avg_w4 h
+    SET_SWAP_BYTE_D_MASK 19,18,10
+    li          10,\h>>1
+    mtctr       10
+4:  // height loop
+    LOAD_4_BYTE_H 0,5,0
+    LOAD_4_BYTE_H 1,7,0
+    add         5,5,6
+    add         7,7,8
+    LOAD_4_BYTE_H 2,5,0
+    LOAD_4_BYTE_H 3,7,0
+    vavgub      0,0,1
+    vavgub      2,2,3
+    add         5,5,6
+    add         7,7,8
+    STORE_4_BYTE_H 0,3,0
+    add         3,3,4
+    STORE_4_BYTE_H 2,3,0
+    add         3,3,4
+    bdnz        4b
+.endm
+
+.macro avg_w8 h
+    li          10,\h>>2
+    mtctr       10
+4:  // height loop
+    LOAD_8_BYTE_H 0,5,0,9
+    LOAD_8_BYTE_H 1,7,0,10
+    add         5,5,6
+    add         7,7,8
+    LOAD_8_BYTE_H 2,5,0,9
+    LOAD_8_BYTE_H 3,7,0,10
+    add         5,5,6
+    add         7,7,8
+    LOAD_8_BYTE_H 4,5,0,9
+    LOAD_8_BYTE_H 5,7,0,10
+    add         5,5,6
+    add         7,7,8
+    LOAD_8_BYTE_H 6,5,0,9
+    LOAD_8_BYTE_H 7,7,0,10
+    vavgub      0,0,1
+    vavgub      2,2,3
+    vavgub      4,4,5
+    vavgub      6,6,7
+    add         5,5,6
+    add         7,7,8
+    STORE_8_BYTE_H 0,3,0,9
+    add         3,3,4
+    STORE_8_BYTE_H 2,3,0,10
+    add         3,3,4
+    STORE_8_BYTE_H 4,3,0,9
+    add         3,3,4
+    STORE_8_BYTE_H 6,3,0,10
+    add         3,3,4
+    bdnz        4b
+.endm
+
+.macro avg_w16 h
+    SET_SWAP_BYTE_D_MASK 19,18,10
+    li          10,\h>>1
+    mtctr       10
+4:  // height loop
+    LOAD_16_BYTE 0,5,0
+    LOAD_16_BYTE 1,7,0
+    add         5,5,6
+    add         7,7,8
+    LOAD_16_BYTE 2,5,0
+    LOAD_16_BYTE 3,7,0
+    vavgub      0,0,1
+    vavgub      2,2,3
+    add         5,5,6
+    add         7,7,8
+    STORE_16_BYTE 0,3,0
+    add         3,3,4
+    STORE_16_BYTE 2,3,0
+    add         3,3,4
+    bdnz        4b
 .endm
 
 // void pixel_avg_weight( uint8_t *dst,  intptr_t dst_stride,
@@ -210,19 +289,24 @@
 //                 uint8_t *src2, intptr_t src2_stride, int weight );
 .macro AVGWH w h
 function pixel_avg_weight_\w\()x\h\()_altivec
+    cmpdi		9,32
+    bne         1f
+    avg_w\w \h                              // weight == 32
+    blr
+1:
     li          10,64
     subc.       10,10,9
-    bge         1f
+    bge         2f
     load_weights_add_sub
     avg_weight_w\w add_sub,\h               // weight > 64
     blr
-1:
+2:
     cmpdi		9,0
-    bge         2f
+    bge         3f
     load_weights_sub_add
     avg_weight_w\w sub_add,\h               // weight < 0
     blr
-2:
+3:
     avg_weight_w\w add_add,\h
     blr
 endfunc

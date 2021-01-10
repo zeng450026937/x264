@@ -174,26 +174,6 @@ static inline void pixel_avg2_w20_altivec( uint8_t *dst,  intptr_t i_dst,
     pixel_avg2_w4_altivec(dst+16, i_dst, src1+16, i_src1, src2+16, i_height);
 }
 
-#define PIXEL_AVG( name, width, height ) \
-static void name( pixel *pix1, intptr_t i_stride_pix1, \
-                  pixel *pix2, intptr_t i_stride_pix2, \
-                  pixel *pix3, intptr_t i_stride_pix3, int weight ) \
-{ \
-    if( weight == 32 ) \
-        pixel_avg2_w##width##_altivec( pix1, i_stride_pix1, pix2, i_stride_pix2, pix3, height ); \
-    else \
-        x264_template(pixel_avg_weight_##width##x##height##_altivec)( pix1, i_stride_pix1, pix2, i_stride_pix2, pix3, i_stride_pix3, weight ); \
-}
-PIXEL_AVG( x264_pixel_avg_16x16_altivec, 16, 16 )
-PIXEL_AVG( x264_pixel_avg_16x8_altivec,  16, 8 )
-PIXEL_AVG( x264_pixel_avg_8x16_altivec,  8, 16 )
-PIXEL_AVG( x264_pixel_avg_8x8_altivec,   8, 8 )
-PIXEL_AVG( x264_pixel_avg_8x4_altivec,   8, 4 )
-PIXEL_AVG( x264_pixel_avg_4x16_altivec,  4, 16 )
-PIXEL_AVG( x264_pixel_avg_4x8_altivec,   4, 8 )
-PIXEL_AVG( x264_pixel_avg_4x4_altivec,   4, 4 )
-PIXEL_AVG( x264_pixel_avg_4x2_altivec,   4, 2 )
-
 /* mc_copy: plain c */
 
 #ifndef __POWER9_VECTOR__
@@ -1512,15 +1492,15 @@ void x264_mc_init_altivec( uint32_t cpu, x264_mc_functions_t *pf )
     }
     if( cpu&X264_CPU_ARCH_2_07 )
     {
-        pf->avg[PIXEL_16x16] = x264_pixel_avg_16x16_altivec;
-        pf->avg[PIXEL_16x8]  = x264_pixel_avg_16x8_altivec;
-        pf->avg[PIXEL_8x16]  = x264_pixel_avg_8x16_altivec;
-        pf->avg[PIXEL_8x8]   = x264_pixel_avg_8x8_altivec;
-        pf->avg[PIXEL_8x4]   = x264_pixel_avg_8x4_altivec;
-        pf->avg[PIXEL_4x16]  = x264_pixel_avg_4x16_altivec;
-        pf->avg[PIXEL_4x8]   = x264_pixel_avg_4x8_altivec;
-        pf->avg[PIXEL_4x4]   = x264_pixel_avg_4x4_altivec;
-        pf->avg[PIXEL_4x2]   = x264_pixel_avg_4x2_altivec;
+        pf->avg[PIXEL_16x16] = x264_pixel_avg_weight_16x16_altivec;
+        pf->avg[PIXEL_16x8]  = x264_pixel_avg_weight_16x8_altivec;
+        pf->avg[PIXEL_8x16]  = x264_pixel_avg_weight_8x16_altivec;
+        pf->avg[PIXEL_8x8]   = x264_pixel_avg_weight_8x8_altivec;
+        pf->avg[PIXEL_8x4]   = x264_pixel_avg_weight_8x4_altivec;
+        pf->avg[PIXEL_4x16]  = x264_pixel_avg_weight_4x16_altivec;
+        pf->avg[PIXEL_4x8]   = x264_pixel_avg_weight_4x8_altivec;
+        pf->avg[PIXEL_4x4]   = x264_pixel_avg_weight_4x4_altivec;
+        pf->avg[PIXEL_4x2]   = x264_pixel_avg_weight_4x2_altivec;
 
         pf->integral_init4h = x264_integral_init4h_altivec;
         pf->integral_init8h = x264_integral_init8h_altivec;
