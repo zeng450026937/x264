@@ -213,10 +213,14 @@ function pixel_ssd_nv12_core_altivec
 3:
     vmsumubm    16,6,6,16
 4:
-    vsum2sws    15,15,12
-    vsum2sws    16,16,12
-    vaddudm     13,13,15
-    vaddudm     14,14,16
+    vmrgew      8,12,15
+    vmrgow      9,12,15
+    vmrgew      10,12,16
+    vmrgow      11,12,16
+    vaddudm     13,13,8
+    vaddudm     14,14,9
+    vaddudm     13,13,10
+    vaddudm     14,14,11
     add         3,3,4
     add         5,5,6
     li          30,0
@@ -349,8 +353,9 @@ function pixel_var2_8x\h\()_altivec
     vadduwm     15,15,13
     vadduwm     16,16,14
     bdnz        1b
+    vmrgew      12,18,17
     vsubuwm     16,15,16
-    vsum2sws    17,17,18
+    vadduwm     17,17,12
     vsum2sws    16,16,18
     xxspltd     VSR(15),VSR(17),1
     xxspltd     VSR(14),VSR(16),1
@@ -409,8 +414,10 @@ function pixel_asd8_altivec
     vadduwm     16,16,14
     bdnz        1b
     vsubuwm     17,15,16
-    vsumsws     17,17,18
-    xxspltd     VSR(17),VSR(17),1
+    xxspltd     VSR(18),VSR(17),1
+    vadduwm     17,17,18
+    vspltw      18,17,0
+    vadduwm     17,17,18
     mfvrwz      8,17
     srawi       9,8,31
     xor         3,9,8
@@ -449,8 +456,10 @@ function pixel_vsad_altivec
     vsum4ubs    17,2,17
     bgt         1b
 2:
-    vsumsws     17,17,18
-    xxspltd     VSR(17),VSR(17),1
+    xxspltd     VSR(18),VSR(17),1
+    vadduwm     17,17,18
+    vspltw      18,17,0
+    vadduwm     17,17,18
     mfvrwz      3,17
     extsw       3,3
     blr
