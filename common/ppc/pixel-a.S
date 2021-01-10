@@ -528,30 +528,30 @@ endfunc
 
 .macro sa8d_satd_8x8_prologue satd=
 .ifc \satd, satd
-    subi        10,1,112
+    subi        10,1,16
     stvx        31,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        30,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        29,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        28,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        27,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        26,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        25,0,10
     vxor        25,25,25
 .set sa8d_satd_8x8_zero,25
 .else
-    subi        10,1,64
+    subi        10,1,16
     stvx        31,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        30,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        29,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        28,0,10
     vxor        18,18,18
 .set sa8d_satd_8x8_zero,18
@@ -562,28 +562,28 @@ endfunc
 
 .macro sa8d_satd_8x8_epilogue satd=
 .ifc \satd, satd
-    subi        10,1,112
+    subi        10,1,16
     lvx         31,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         30,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         29,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         28,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         27,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         26,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         25,0,10
 .else
-    subi        10,1,64
+    subi        10,1,16
     lvx         31,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         30,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         29,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         28,0,10
 .endif
 .endm

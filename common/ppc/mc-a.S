@@ -816,56 +816,56 @@ function mbtree_propagate_cost_altivec
 endfunc
 
 .macro mbtree_propagate_list_internal_prologue
-    subi        10,1,192
+    subi        10,1,16
     stvx        31,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        30,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        29,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        28,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        27,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        26,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        25,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        24,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        23,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        22,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        21,0,10
-    addi        10,10,16
+    subi        10,10,16
     stvx        20,0,10
 .endm
 
 .macro mbtree_propagate_list_internal_epilogue
-    subi        10,1,192
+    subi        10,1,16
     lvx         31,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         30,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         29,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         28,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         27,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         26,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         25,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         24,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         23,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         22,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         21,0,10
-    addi        10,10,16
+    subi        10,10,16
     lvx         20,0,10
 .endm
 

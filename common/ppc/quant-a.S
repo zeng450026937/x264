@@ -291,10 +291,10 @@ endfunc
 .endm
 
 .macro coeff_level_run shift
-    std         28,-8(1)
-    std         29,-16(1)
-    std         30,-24(1)
-    std         31,-32(1)
+    std         31,-8(1)
+    std         30,-16(1)
+    std         29,-24(1)
+    std         28,-32(1)
     cntlzd      30,5
     srwi        31,30,\shift
     li          28,~((1 << \shift) - 1)
@@ -320,10 +320,10 @@ endfunc
 2:
     stw         8,4(4)
     extsw       3,7
-    ld          28,-8(1)
-    ld          29,-16(1)
-    ld          30,-24(1)
-    ld          31,-32(1)
+    ld          31,-8(1)
+    ld          30,-16(1)
+    ld          29,-24(1)
+    ld          28,-32(1)
 .endm
 
 #ifndef WORDS_BIGENDIAN

@@ -195,16 +195,16 @@ endfunc
 function deblock_h_chroma_altivec
     h264_loop_filter_start
     subi        3,3,4
-    subi        9,1,32
+    subi        9,1,16
     stvx        31,0,9
-    addi        9,9,16
+    subi        9,9,16
     stvx        30,0,9
     VEC_LOAD_DATA 31,.trn_even_halfword_mask,10
     VEC_LOAD_DATA 30,.trn_odd_halfword_mask,9
     deblock_h_chroma
-    subi        9,1,32
+    subi        9,1,16
     lvx         31,0,9
-    addi        9,9,16
+    subi        9,9,16
     lvx         30,0,9
     blr
 endfunc
@@ -212,9 +212,9 @@ endfunc
 function deblock_h_chroma_422_altivec
     h264_loop_filter_start
     add         7,3,4
-    subi        9,1,32
+    subi        9,1,16
     stvx        31,0,9
-    addi        9,9,16
+    subi        9,9,16
     stvx        30,0,9
     subi        3,3,4
     VEC_LOAD_DATA 31,.trn_even_halfword_mask,10
@@ -225,9 +225,9 @@ function deblock_h_chroma_422_altivec
     subi        3,7,4
     vsldoi      14,14,14,4
     deblock_h_chroma
-    subi        9,1,32
+    subi        9,1,16
     lvx         31,0,9
-    addi        9,9,16
+    subi        9,9,16
     lvx         30,0,9
     blr
 endfunc
