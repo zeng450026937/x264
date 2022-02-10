@@ -197,6 +197,11 @@ SRCS_X += common/mips/dct-c.c \
 endif
 endif
 
+# LOONGARCH optimization
+ifeq ($(SYS_ARCH),LOONGARCH)
+SRCS_X +=
+endif
+
 endif
 
 ifneq ($(HAVE_GETOPT_LONG),1)
