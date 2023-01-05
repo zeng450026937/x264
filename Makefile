@@ -199,6 +199,8 @@ endif
 
 # LOONGARCH optimization
 ifeq ($(SYS_ARCH),LOONGARCH)
+SRCASM_X += common/loongarch/deblock-a.S \
+
 SRCS_X +=
 
 OBJASM +=
