@@ -5,6 +5,7 @@
  * Copyright (C) 2023 Loongson Technology Corporation Limited
  *
  * Authors: Lu Wang <wanglu@loongson.cn>
+ *          Hecai Yuan <yuanhecai@loongson.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
