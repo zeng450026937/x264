@@ -200,7 +200,11 @@ cglobal checkasm_call, 2,7,0,-1*(((max_args+1)*4+STACK_ALIGNMENT-1) & ~(STACK_AL
     mov  r4, edx
     lea  r1, [error_message]
     mov  [esp], r1
+%if FORMAT_ELF
+    call puts wrt ..plt
+%else
     call puts
+%endif
     mov  r1, [esp+max_args*4]
     mov  dword [r1], 0
     mov  edx, r4
