@@ -96,6 +96,7 @@ const x264_cpu_name_t x264_cpu_names[] =
 #elif ARCH_AARCH64
     {"ARMv8",           X264_CPU_ARMV8},
     {"NEON",            X264_CPU_NEON},
+    {"SVE2",            X264_CPU_SVE2},
 #elif ARCH_MIPS
     {"MSA",             X264_CPU_MSA},
 #endif
@@ -407,7 +408,9 @@ uint32_t x264_cpu_detect( void )
 
 uint32_t x264_cpu_detect( void )
 {
-#if HAVE_NEON
+#if HAVE_SVE2
+    return X264_CPU_ARMV8 | X264_CPU_NEON | X264_CPU_SVE2;
+#elif HAVE_NEON
     return X264_CPU_ARMV8 | X264_CPU_NEON;
 #else
     return X264_CPU_ARMV8;

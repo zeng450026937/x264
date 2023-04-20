@@ -160,7 +160,7 @@ endif
 OBJCHK += tools/checkasm-arm.o
 endif
 
-# AArch64 NEON optims
+# AArch64 NEON and SVE2 optims
 ifeq ($(SYS_ARCH),AARCH64)
 SRCASM_X  = common/aarch64/bitstream-a.S \
             common/aarch64/cabac-a.S \
