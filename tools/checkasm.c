@@ -64,7 +64,7 @@ static int quiet = 0;
     if( !ok ) ret = -1; \
 }
 
-#define BENCH_RUNS 20000 // tradeoff between accuracy and speed
+#define BENCH_RUNS 2000 // tradeoff between accuracy and speed
 #define MAX_FUNCS 1000  // just has to be big enough to hold all the existing functions
 #define MAX_CPUS 30     // number of different combinations of cpu flags
 
