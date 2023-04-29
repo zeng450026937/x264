@@ -29,4 +29,7 @@
 #define x264_nal_escape_neon x264_template(nal_escape_neon)
 uint8_t *x264_nal_escape_neon( uint8_t *dst, uint8_t *src, uint8_t *end );
 
+#define x264_nal_escape_sve2 x264_template(nal_escape_sve2)
+uint8_t *x264_nal_escape_sve2( uint8_t *dst, uint8_t *src, uint8_t *end );
+
 #endif
