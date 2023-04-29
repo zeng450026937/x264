@@ -105,6 +105,8 @@ function nal_escape_sve2, export=1
     ld1b        {z1.b}, p0/z, [x1]
     add         x1, x1, #16
     ext         z2.b, { z0.b, z1.b }, #14
+    // SVE2 cmp<cc> gretly decrease performance
+    // So, keeping NEON here
     cmhi        v7.16b, v4.16b, v1.16b
     cmeq        v5.16b, v2.16b, #0
     and         v5.16b, v5.16b, v7.16b
