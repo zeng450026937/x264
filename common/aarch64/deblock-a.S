@@ -453,11 +453,11 @@ deblock_h_chroma:
     ld1             {v0.d}[1],  [x0], x1
     ld1             {v2.d}[1],  [x0], x1
 
-    transpose4x8.h  v18, v16, v0, v2, v28, v29, v30, v31
+    transpose4x8.h_neon  v18, v16, v0, v2, v28, v29, v30, v31
 
     h264_loop_filter_chroma
 
-    transpose4x8.h  v18, v16, v0, v2, v28, v29, v30, v31
+    transpose4x8.h_neon  v18, v16, v0, v2, v28, v29, v30, v31
 
     sub             x0,  x0,  x1, lsl #3
     st1             {v18.d}[0], [x0], x1
@@ -527,7 +527,7 @@ function deblock_h_chroma_mbaff_neon, export=1
     ld1             {v17.8b},  [x4], x1
     ld1             {v19.8b},  [x4]
 
-    transpose4x4.h  v18, v16, v17, v19, v28, v29, v30, v31
+    transpose4x4.h_neon  v18, v16, v17, v19, v28, v29, v30, v31
 
     h264_loop_filter_chroma8
 
@@ -603,7 +603,7 @@ function deblock_h_chroma_intra_mbaff_neon, export=1
     ld1             {v17.8b}, [x4], x1
     ld1             {v19.8b}, [x4], x1
 
-    transpose4x4.h  v18, v16, v17, v19, v26, v27, v28, v29
+    transpose4x4.h_neon  v18, v16, v17, v19, v26, v27, v28, v29
 
     h264_loop_filter_chroma_intra width=8
 
@@ -629,7 +629,7 @@ function deblock_h_chroma_intra_neon, export=1
     ld1             {v17.d}[1], [x4], x1
     ld1             {v19.d}[1], [x4], x1
 
-    transpose4x8.h  v18, v16, v17, v19, v26, v27, v28, v29
+    transpose4x8.h_neon  v18, v16, v17, v19, v26, v27, v28, v29
 
     h264_loop_filter_chroma_intra
 
@@ -659,7 +659,7 @@ function deblock_h_chroma_422_intra_neon, export=1
     ld1             {v17.d}[1], [x4], x1
     ld1             {v19.d}[1], [x4], x1
 
-    transpose4x8.h  v18, v16, v17, v19, v26, v27, v28, v29
+    transpose4x8.h_neon  v18, v16, v17, v19, v26, v27, v28, v29
 
     h264_loop_filter_chroma_intra
 
@@ -681,7 +681,7 @@ function deblock_h_chroma_422_intra_neon, export=1
     ld1             {v17.d}[1], [x4], x1
     ld1             {v19.d}[1], [x4], x1
 
-    transpose4x8.h  v18, v16, v17, v19, v26, v27, v28, v29
+    transpose4x8.h_neon  v18, v16, v17, v19, v26, v27, v28, v29
 
     h264_loop_filter_chroma_intra
 

@@ -147,22 +147,35 @@ MACH    .const_data
     trn2        \t2,  \s1,  \s2
 .endm
 
-.macro transpose4x4.h v0, v1, v2, v3, t0, t1, t2, t3
+.macro transpose4x4.h_neon v0, v1, v2, v3, t0, t1, t2, t3
     transpose   \t0\().2s,  \t2\().2s,  \v0\().2s,  \v2\().2s
     transpose   \t1\().2s,  \t3\().2s,  \v1\().2s,  \v3\().2s
     transpose   \v0\().4h,  \v1\().4h,  \t0\().4h,  \t1\().4h
     transpose   \v2\().4h,  \v3\().4h,  \t2\().4h,  \t3\().4h
 .endm
 
-.macro transpose4x8.h v0, v1, v2, v3, t0, t1, t2, t3
+.macro transpose4x4.h_sve2 z0, z1, z2, z3, t0, t1, t2, t3
+    transpose   \t0\().s,  \t2\().s,  \z0\().s,  \z2\().s
+    transpose   \t1\().s,  \t3\().s,  \z1\().s,  \z3\().s
+    transpose   \z0\().h,  \z1\().h,  \t0\().h,  \t1\().h
+    transpose   \z2\().h,  \z3\().h,  \t2\().h,  \t3\().h
+.endm
+
+.macro transpose4x8.h_neon v0, v1, v2, v3, t0, t1, t2, t3
     transpose   \t0\().4s,  \t2\().4s,  \v0\().4s,  \v2\().4s
     transpose   \t1\().4s,  \t3\().4s,  \v1\().4s,  \v3\().4s
     transpose   \v0\().8h,  \v1\().8h,  \t0\().8h,  \t1\().8h
     transpose   \v2\().8h,  \v3\().8h,  \t2\().8h,  \t3\().8h
 .endm
 
+.macro transpose4x8.h_sve2 z0, z1, z2, z3, t0, t1, t2, t3
+    transpose   \t0\().s,  \t2\().s,  \z0\().s,  \z2\().s
+    transpose   \t1\().s,  \t3\().s,  \z1\().s,  \z3\().s
+    transpose   \z0\().h,  \z1\().h,  \t0\().h,  \t1\().h
+    transpose   \z2\().h,  \z3\().h,  \t2\().h,  \t3\().h
+.endm
 
-.macro transpose8x8.h r0, r1, r2, r3, r4, r5, r6, r7, r8, r9
+.macro transpose8x8.h_neon r0, r1, r2, r3, r4, r5, r6, r7, r8, r9
     trn1        \r8\().8H,  \r0\().8H,  \r1\().8H
     trn2        \r9\().8H,  \r0\().8H,  \r1\().8H
     trn1        \r1\().8H,  \r2\().8H,  \r3\().8H
@@ -192,6 +205,38 @@ MACH    .const_data
 
     trn1        \r3\().2D,  \r9\().2D,  \r7\().2D
     trn2        \r7\().2D,  \r9\().2D,  \r7\().2D
+.endm
+
+.macro transpose8x8.h_sve2 r0, r1, r2, r3, r4, r5, r6, r7, r8, r9
+    trn1        \r8\().H,  \r0\().H,  \r1\().H
+    trn2        \r9\().H,  \r0\().H,  \r1\().H
+    trn1        \r1\().H,  \r2\().H,  \r3\().H
+    trn2        \r3\().H,  \r2\().H,  \r3\().H
+    trn1        \r0\().H,  \r4\().H,  \r5\().H
+    trn2        \r5\().H,  \r4\().H,  \r5\().H
+    trn1        \r2\().H,  \r6\().H,  \r7\().H
+    trn2        \r7\().H,  \r6\().H,  \r7\().H
+
+    trn1        \r4\().S,  \r0\().S,  \r2\().S
+    trn2        \r2\().S,  \r0\().S,  \r2\().S
+    trn1        \r6\().S,  \r5\().S,  \r7\().S
+    trn2        \r7\().S,  \r5\().S,  \r7\().S
+    trn1        \r5\().S,  \r9\().S,  \r3\().S
+    trn2        \r9\().S,  \r9\().S,  \r3\().S
+    trn1        \r3\().S,  \r8\().S,  \r1\().S
+    trn2        \r8\().S,  \r8\().S,  \r1\().S
+
+    trn1        \r0\().D,  \r3\().D,  \r4\().D
+    trn2        \r4\().D,  \r3\().D,  \r4\().D
+
+    trn1        \r1\().D,  \r5\().D,  \r6\().D
+    trn2        \r5\().D,  \r5\().D,  \r6\().D
+
+    trn2        \r6\().D,  \r8\().D,  \r2\().D
+    trn1        \r2\().D,  \r8\().D,  \r2\().D
+
+    trn1        \r3\().D,  \r9\().D,  \r7\().D
+    trn2        \r7\().D,  \r9\().D,  \r7\().D
 .endm
 
 .macro  transpose_8x16.b r0, r1, r2, r3, r4, r5, r6, r7, t0, t1

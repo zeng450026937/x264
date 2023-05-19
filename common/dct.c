@@ -705,6 +705,28 @@ void x264_dct_init( uint32_t cpu, x264_dct_function_t *dctf )
         dctf->add16x16_idct8= x264_add16x16_idct8_neon;
         dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_neon;
     }
+    if( cpu&X264_CPU_SVE2 )
+    {
+        dctf->sub4x4_dct    = x264_sub4x4_dct_sve2;
+        dctf->sub8x8_dct    = x264_sub8x8_dct_sve2;
+        dctf->sub16x16_dct  = x264_sub16x16_dct_sve2;
+        // Migration of add8x8_idct_dc and add16x16_idct_dc to SVE2 decreases
+        // the performance. So, continue using NEON for these functions
+        dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_sve2;
+        dctf->dct4x4dc      = x264_dct4x4dc_sve2;
+        dctf->idct4x4dc     = x264_idct4x4dc_sve2;
+
+        dctf->add4x4_idct   = x264_add4x4_idct_sve2;
+        dctf->add8x8_idct   = x264_add8x8_idct_sve2;
+        dctf->add16x16_idct = x264_add16x16_idct_sve2;
+
+        dctf->sub8x8_dct8   = x264_sub8x8_dct8_sve2;
+        dctf->sub16x16_dct8 = x264_sub16x16_dct8_sve2;
+
+        dctf->add8x8_idct8  = x264_add8x8_idct8_sve2;
+        dctf->add16x16_idct8= x264_add16x16_idct8_sve2;
+        dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_sve2;
+    }
 #endif
 
 #if HAVE_MSA
@@ -1012,6 +1034,13 @@ void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x26
         pf_progressive->sub_8x8   = x264_zigzag_sub_8x8_frame_neon;
 #endif // HAVE_AARCH64
     }
+    // SVE2 is only supported for Aarch64 architectures
+    if( cpu&X264_CPU_SVE2 )
+    {
+        // Migration of zigzag_sub_4x4, zigzag_scan_4x4_field, zigzag_scan_8x8_frame and
+        // zigzag_scan_8x8_field to SVE2 decreases the performance. So, continue using
+        // NEON for these functions
+    }
 #endif // HAVE_ARMV6 || HAVE_AARCH64
 #endif // HIGH_BIT_DEPTH
 
@@ -1070,6 +1099,10 @@ void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x26
     {
         pf_interlaced->interleave_8x8_cavlc =
         pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_neon;
+    }
+    if( cpu&X264_CPU_SVE2 )
+    {
+        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_sve2;
     }
 #endif // HAVE_AARCH64
 

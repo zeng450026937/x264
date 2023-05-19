@@ -27,6 +27,7 @@
 #ifndef X264_AARCH64_DCT_H
 #define X264_AARCH64_DCT_H
 
+//######### NEON ###########
 #define x264_dct4x4dc_neon x264_template(dct4x4dc_neon)
 void x264_dct4x4dc_neon( int16_t d[16] );
 #define x264_idct4x4dc_neon x264_template(idct4x4dc_neon)
@@ -90,5 +91,43 @@ int x264_zigzag_sub_8x8_frame_neon( dctcoef level[16], const pixel *p_src, pixel
 
 #define x264_zigzag_interleave_8x8_cavlc_neon x264_template(zigzag_interleave_8x8_cavlc_neon)
 void x264_zigzag_interleave_8x8_cavlc_neon( dctcoef *dst, dctcoef *src, uint8_t *nnz );
+
+//######### SVE2 ###########
+#define x264_dct4x4dc_sve2 x264_template(dct4x4dc_sve2)
+void x264_dct4x4dc_sve2( int16_t d[16] );
+#define x264_idct4x4dc_sve2 x264_template(idct4x4dc_sve2)
+void x264_idct4x4dc_sve2( int16_t d[16] );
+
+#define x264_sub4x4_dct_sve2 x264_template(sub4x4_dct_sve2)
+void x264_sub4x4_dct_sve2( int16_t dct[16], uint8_t *pix1, uint8_t *pix2 );
+#define x264_sub8x8_dct_sve2 x264_template(sub8x8_dct_sve2)
+void x264_sub8x8_dct_sve2( int16_t dct[4][16], uint8_t *pix1, uint8_t *pix2 );
+#define x264_sub16x16_dct_sve2 x264_template(sub16x16_dct_sve2)
+void x264_sub16x16_dct_sve2( int16_t dct[16][16], uint8_t *pix1, uint8_t *pix2 );
+
+#define x264_add4x4_idct_sve2 x264_template(add4x4_idct_sve2)
+void x264_add4x4_idct_sve2( uint8_t *p_dst, int16_t dct[16] );
+#define x264_add8x8_idct_sve2 x264_template(add8x8_idct_sve2)
+void x264_add8x8_idct_sve2( uint8_t *p_dst, int16_t dct[4][16] );
+#define x264_add16x16_idct_sve2 x264_template(add16x16_idct_sve2)
+void x264_add16x16_idct_sve2( uint8_t *p_dst, int16_t dct[16][16] );
+
+#define x264_sub8x8_dct_dc_sve2 x264_template(sub8x8_dct_dc_sve2)
+void x264_sub8x8_dct_dc_sve2( int16_t dct[4], uint8_t *pix1, uint8_t *pix2 );
+#define x264_sub8x16_dct_dc_sve2 x264_template(sub8x16_dct_dc_sve2)
+void x264_sub8x16_dct_dc_sve2( int16_t dct[8], uint8_t *pix1, uint8_t *pix2 );
+
+#define x264_add8x8_idct8_sve2 x264_template(add8x8_idct8_sve2)
+void x264_add8x8_idct8_sve2( uint8_t *p_dst, int16_t dct[64] );
+#define x264_add16x16_idct8_sve2 x264_template(add16x16_idct8_sve2)
+void x264_add16x16_idct8_sve2( uint8_t *p_dst, int16_t dct[4][64] );
+
+#define x264_sub8x8_dct8_sve2 x264_template(sub8x8_dct8_sve2)
+void x264_sub8x8_dct8_sve2( int16_t dct[64], uint8_t *pix1, uint8_t *pix2 );
+#define x264_sub16x16_dct8_sve2 x264_template(sub16x16_dct8_sve2)
+void x264_sub16x16_dct8_sve2( int16_t dct[4][64], uint8_t *pix1, uint8_t *pix2 );
+
+#define x264_zigzag_interleave_8x8_cavlc_sve2 x264_template(zigzag_interleave_8x8_cavlc_sve2)
+void x264_zigzag_interleave_8x8_cavlc_sve2( dctcoef *dst, dctcoef *src, uint8_t *nnz );
 
 #endif
