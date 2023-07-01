@@ -159,12 +159,20 @@ void x264_bitstream_init( uint32_t cpu, x264_bitstream_function_t *pf )
     if( cpu&X264_CPU_NEON )
         pf->nal_escape = x264_nal_escape_neon;
 #endif
-#if HAVE_AARCH64
-    if( cpu&X264_CPU_NEON )
-        pf->nal_escape = x264_nal_escape_neon;
-#endif
 #if HAVE_SVE2
     if( cpu&X264_CPU_SVE2 )
         pf->nal_escape = x264_nal_escape_sve2;
+    else if( cpu&X264_CPU_SVE )
+        pf->nal_escape = x264_nal_escape_neon;
+    else if( cpu&X264_CPU_NEON )
+        pf->nal_escape = x264_nal_escape_neon;
+#elif HAVE_SVE
+    if( cpu&X264_CPU_SVE )
+        pf->nal_escape = x264_nal_escape_neon;
+    else if( cpu&X264_CPU_NEON )
+        pf->nal_escape = x264_nal_escape_neon;
+#elif HAVE_AARCH64
+    if( cpu&X264_CPU_NEON )
+        pf->nal_escape = x264_nal_escape_neon;
 #endif
 }

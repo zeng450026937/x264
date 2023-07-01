@@ -683,50 +683,35 @@ void x264_dct_init( uint32_t cpu, x264_dct_function_t *dctf )
 #endif
 
 #if HAVE_ARMV6 || HAVE_AARCH64
-    if( cpu&X264_CPU_NEON )
-    {
-        dctf->sub4x4_dct    = x264_sub4x4_dct_neon;
-        dctf->sub8x8_dct    = x264_sub8x8_dct_neon;
-        dctf->sub16x16_dct  = x264_sub16x16_dct_neon;
-        dctf->add8x8_idct_dc = x264_add8x8_idct_dc_neon;
-        dctf->add16x16_idct_dc = x264_add16x16_idct_dc_neon;
-        dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_neon;
-        dctf->dct4x4dc      = x264_dct4x4dc_neon;
-        dctf->idct4x4dc     = x264_idct4x4dc_neon;
-
-        dctf->add4x4_idct   = x264_add4x4_idct_neon;
-        dctf->add8x8_idct   = x264_add8x8_idct_neon;
-        dctf->add16x16_idct = x264_add16x16_idct_neon;
-
-        dctf->sub8x8_dct8   = x264_sub8x8_dct8_neon;
-        dctf->sub16x16_dct8 = x264_sub16x16_dct8_neon;
-
-        dctf->add8x8_idct8  = x264_add8x8_idct8_neon;
-        dctf->add16x16_idct8= x264_add16x16_idct8_neon;
-        dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_neon;
-    }
+#if HAVE_SVE2
     if( cpu&X264_CPU_SVE2 )
     {
-        dctf->sub4x4_dct    = x264_sub4x4_dct_sve2;
-        dctf->sub8x8_dct    = x264_sub8x8_dct_sve2;
-        dctf->sub16x16_dct  = x264_sub16x16_dct_sve2;
-        // Migration of add8x8_idct_dc and add16x16_idct_dc to SVE2 decreases
-        // the performance. So, continue using NEON for these functions
-        dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_sve2;
-        dctf->dct4x4dc      = x264_dct4x4dc_sve2;
-        dctf->idct4x4dc     = x264_idct4x4dc_sve2;
-
-        dctf->add4x4_idct   = x264_add4x4_idct_sve2;
-        dctf->add8x8_idct   = x264_add8x8_idct_sve2;
-        dctf->add16x16_idct = x264_add16x16_idct_sve2;
-
-        dctf->sub8x8_dct8   = x264_sub8x8_dct8_sve2;
-        dctf->sub16x16_dct8 = x264_sub16x16_dct8_sve2;
-
-        dctf->add8x8_idct8  = x264_add8x8_idct8_sve2;
-        dctf->add16x16_idct8= x264_add16x16_idct8_sve2;
-        dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_sve2;
+        x264_setupDctSve2Primitives(dctf);
     }
+    else if (cpu&X264_CPU_SVE)
+    {
+        x264_setupDctSvePrimitives(dctf);
+    }
+    else if (cpu&X264_CPU_NEON)
+    {
+        x264_setupDctNeonPrimitives(dctf);
+    }
+
+#elif HAVE_SVE
+    if (cpu&X264_CPU_SVE)
+    {
+        x264_setupDctSvePrimitives(dctf);
+    }
+    else if (cpu&X264_CPU_NEON)
+    {
+        x264_setupDctNeonPrimitives(dctf);
+    }
+#else
+    if( cpu&X264_CPU_NEON )
+    {
+        x264_setupDctNeonPrimitives(dctf);
+    }
+#endif
 #endif
 
 #if HAVE_MSA
@@ -1018,30 +1003,34 @@ void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x26
         pf_progressive->scan_8x8  = x264_zigzag_scan_8x8_frame_altivec;
     }
 #endif
-#if HAVE_ARMV6 || HAVE_AARCH64
-    if( cpu&X264_CPU_NEON )
-    {
-        pf_progressive->scan_4x4  = x264_zigzag_scan_4x4_frame_neon;
-#if HAVE_AARCH64
-        pf_interlaced->scan_4x4   = x264_zigzag_scan_4x4_field_neon;
-        pf_interlaced->scan_8x8   = x264_zigzag_scan_8x8_field_neon;
-        pf_interlaced->sub_4x4    = x264_zigzag_sub_4x4_field_neon;
-        pf_interlaced->sub_4x4ac  = x264_zigzag_sub_4x4ac_field_neon;
-        pf_interlaced->sub_8x8    = x264_zigzag_sub_8x8_field_neon;
-        pf_progressive->scan_8x8  = x264_zigzag_scan_8x8_frame_neon;
-        pf_progressive->sub_4x4   = x264_zigzag_sub_4x4_frame_neon;
-        pf_progressive->sub_4x4ac = x264_zigzag_sub_4x4ac_frame_neon;
-        pf_progressive->sub_8x8   = x264_zigzag_sub_8x8_frame_neon;
-#endif // HAVE_AARCH64
-    }
-    // SVE2 is only supported for Aarch64 architectures
+#if HAVE_SVE2
     if( cpu&X264_CPU_SVE2 )
     {
-        // Migration of zigzag_sub_4x4, zigzag_scan_4x4_field, zigzag_scan_8x8_frame and
-        // zigzag_scan_8x8_field to SVE2 decreases the performance. So, continue using
-        // NEON for these functions
+        x264_setupZigZagSve2Primitives(pf_progressive, pf_interlaced);
     }
-#endif // HAVE_ARMV6 || HAVE_AARCH64
+    else if( cpu&X264_CPU_SVE )
+    {
+        x264_setupZigZagSvePrimitives(pf_progressive, pf_interlaced);
+    }
+    else if( cpu&X264_CPU_NEON )
+    {
+        x264_setupZigZagNeonPrimitives(pf_progressive, pf_interlaced);
+    }
+#elif HAVE_SVE
+    if( cpu&X264_CPU_SVE )
+    {
+        x264_setupZigZagSvePrimitives(pf_progressive, pf_interlaced);
+    }
+    else if( cpu&X264_CPU_NEON )
+    {
+        x264_setupZigZagNeonPrimitives(pf_progressive, pf_interlaced);
+    }
+#elif HAVE_ARMV6 || HAVE_AARCH64
+    if( cpu&X264_CPU_NEON )
+    {
+        x264_setupZigZagNeonPrimitives(pf_progressive, pf_interlaced);
+    }
+#endif // HAVE_SVE2
 #endif // HIGH_BIT_DEPTH
 
     pf_interlaced->interleave_8x8_cavlc =
@@ -1094,17 +1083,40 @@ void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x26
 #endif // HIGH_BIT_DEPTH
 #endif
 #if !HIGH_BIT_DEPTH
-#if HAVE_AARCH64
+#if HAVE_SVE2
+    if( cpu&X264_CPU_SVE2 )
+    {
+        pf_interlaced->interleave_8x8_cavlc =
+        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_sve;
+    }
+    else if( cpu&X264_CPU_SVE )
+    {
+        pf_interlaced->interleave_8x8_cavlc =
+        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_sve;
+    }
+    else if( cpu&X264_CPU_NEON )
+    {
+        pf_interlaced->interleave_8x8_cavlc =
+        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_neon;
+    }
+#elif HAVE_SVE
+    if( cpu&X264_CPU_SVE )
+    {
+        pf_interlaced->interleave_8x8_cavlc =
+        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_sve;
+    }
+    else if( cpu&X264_CPU_NEON )
+    {
+        pf_interlaced->interleave_8x8_cavlc =
+        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_neon;
+    }
+#elif HAVE_AARCH64
     if( cpu&X264_CPU_NEON )
     {
         pf_interlaced->interleave_8x8_cavlc =
         pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_neon;
     }
-    if( cpu&X264_CPU_SVE2 )
-    {
-        pf_progressive->interleave_8x8_cavlc =  x264_zigzag_interleave_8x8_cavlc_sve2;
-    }
-#endif // HAVE_AARCH64
+#endif // HAVE_SVE2
 
 #if HAVE_ALTIVEC
     if( cpu&X264_CPU_ALTIVEC )
@@ -1122,3 +1134,130 @@ void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x26
 #endif
 #endif // !HIGH_BIT_DEPTH
 }
+
+#if HAVE_SVE2
+void x264_setupDctSve2Primitives(x264_dct_function_t *dctf) {
+    dctf->sub4x4_dct    = x264_sub4x4_dct_sve;
+    dctf->sub8x8_dct    = x264_sub8x8_dct_sve;
+    dctf->sub16x16_dct  = x264_sub16x16_dct_sve;
+    // Migration of add8x8_idct_dc and add16x16_idct_dc to SVE/SVE2 decreases
+    // the performance. So, continue using NEON for these functions
+    dctf->add8x8_idct_dc = x264_add8x8_idct_dc_neon;
+    dctf->add16x16_idct_dc = x264_add16x16_idct_dc_neon;
+    dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_sve;
+    dctf->dct4x4dc      = x264_dct4x4dc_sve2;
+    dctf->idct4x4dc     = x264_idct4x4dc_sve;
+
+    dctf->add4x4_idct   = x264_add4x4_idct_sve2;
+    dctf->add8x8_idct   = x264_add8x8_idct_sve2;
+    dctf->add16x16_idct = x264_add16x16_idct_sve2;
+
+    dctf->sub8x8_dct8   = x264_sub8x8_dct8_sve;
+    dctf->sub16x16_dct8 = x264_sub16x16_dct8_sve;
+
+    dctf->add8x8_idct8  = x264_add8x8_idct8_sve2;
+    dctf->add16x16_idct8= x264_add16x16_idct8_sve2;
+    dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_sve;
+}
+
+void x264_setupZigZagSve2Primitives(x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced) {
+    // Migration of zigzag_sub_4x4, zigzag_scan_4x4_field, zigzag_scan_8x8_frame and
+    // zigzag_scan_8x8_field to SVE/SVE2 decreases the performance. So, continue using
+    // NEON for these functions
+    pf_progressive->scan_4x4  = x264_zigzag_scan_4x4_frame_neon;
+#if HAVE_AARCH64
+    pf_interlaced->scan_4x4   = x264_zigzag_scan_4x4_field_neon;
+    pf_interlaced->scan_8x8   = x264_zigzag_scan_8x8_field_neon;
+    pf_interlaced->sub_4x4    = x264_zigzag_sub_4x4_field_neon;
+    pf_interlaced->sub_4x4ac  = x264_zigzag_sub_4x4ac_field_neon;
+    pf_interlaced->sub_8x8    = x264_zigzag_sub_8x8_field_neon;
+    pf_progressive->scan_8x8  = x264_zigzag_scan_8x8_frame_neon;
+    pf_progressive->sub_4x4   = x264_zigzag_sub_4x4_frame_neon;
+    pf_progressive->sub_4x4ac = x264_zigzag_sub_4x4ac_frame_neon;
+    pf_progressive->sub_8x8   = x264_zigzag_sub_8x8_frame_neon;
+#endif // HAVE_AARCH64
+}
+#endif
+
+#if HAVE_SVE
+void x264_setupDctSvePrimitives(x264_dct_function_t *dctf){
+    dctf->sub4x4_dct    = x264_sub4x4_dct_sve;
+    dctf->sub8x8_dct    = x264_sub8x8_dct_sve;
+    dctf->sub16x16_dct  = x264_sub16x16_dct_sve;
+    // Migration of add8x8_idct_dc and add16x16_idct_dc to SVE/SVE2 decreases
+    // the performance. So, continue using NEON for these functions
+    dctf->add8x8_idct_dc = x264_add8x8_idct_dc_neon;
+    dctf->add16x16_idct_dc = x264_add16x16_idct_dc_neon;
+    dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_sve;
+    dctf->dct4x4dc      = x264_dct4x4dc_neon;
+    dctf->idct4x4dc     = x264_idct4x4dc_sve;
+
+    dctf->add4x4_idct   = x264_add4x4_idct_neon;
+    dctf->add8x8_idct   = x264_add8x8_idct_neon;
+    dctf->add16x16_idct = x264_add16x16_idct_neon;
+
+    dctf->sub8x8_dct8   = x264_sub8x8_dct8_sve;
+    dctf->sub16x16_dct8 = x264_sub16x16_dct8_sve;
+
+    dctf->add8x8_idct8  = x264_add8x8_idct8_neon;
+    dctf->add16x16_idct8= x264_add16x16_idct8_neon;
+    dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_sve;
+}
+
+void x264_setupZigZagSvePrimitives(x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced) {
+    // Migration of zigzag_sub_4x4, zigzag_scan_4x4_field, zigzag_scan_8x8_frame and
+    // zigzag_scan_8x8_field to SVE/SVE2 decreases the performance. So, continue using
+    // NEON for these functions
+    pf_progressive->scan_4x4  = x264_zigzag_scan_4x4_frame_neon;
+#if HAVE_AARCH64
+    pf_interlaced->scan_4x4   = x264_zigzag_scan_4x4_field_neon;
+    pf_interlaced->scan_8x8   = x264_zigzag_scan_8x8_field_neon;
+    pf_interlaced->sub_4x4    = x264_zigzag_sub_4x4_field_neon;
+    pf_interlaced->sub_4x4ac  = x264_zigzag_sub_4x4ac_field_neon;
+    pf_interlaced->sub_8x8    = x264_zigzag_sub_8x8_field_neon;
+    pf_progressive->scan_8x8  = x264_zigzag_scan_8x8_frame_neon;
+    pf_progressive->sub_4x4   = x264_zigzag_sub_4x4_frame_neon;
+    pf_progressive->sub_4x4ac = x264_zigzag_sub_4x4ac_frame_neon;
+    pf_progressive->sub_8x8   = x264_zigzag_sub_8x8_frame_neon;
+#endif // HAVE_AARCH64
+}
+#endif
+
+#if HAVE_NEON
+void x264_setupDctNeonPrimitives(x264_dct_function_t *dctf){
+    dctf->sub4x4_dct    = x264_sub4x4_dct_neon;
+    dctf->sub8x8_dct    = x264_sub8x8_dct_neon;
+    dctf->sub16x16_dct  = x264_sub16x16_dct_neon;
+    dctf->add8x8_idct_dc = x264_add8x8_idct_dc_neon;
+    dctf->add16x16_idct_dc = x264_add16x16_idct_dc_neon;
+    dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_neon;
+    dctf->dct4x4dc      = x264_dct4x4dc_neon;
+    dctf->idct4x4dc     = x264_idct4x4dc_neon;
+
+    dctf->add4x4_idct   = x264_add4x4_idct_neon;
+    dctf->add8x8_idct   = x264_add8x8_idct_neon;
+    dctf->add16x16_idct = x264_add16x16_idct_neon;
+
+    dctf->sub8x8_dct8   = x264_sub8x8_dct8_neon;
+    dctf->sub16x16_dct8 = x264_sub16x16_dct8_neon;
+
+    dctf->add8x8_idct8  = x264_add8x8_idct8_neon;
+    dctf->add16x16_idct8= x264_add16x16_idct8_neon;
+    dctf->sub8x16_dct_dc= x264_sub8x16_dct_dc_neon;
+}
+
+void x264_setupZigZagNeonPrimitives(x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced) {
+    pf_progressive->scan_4x4  = x264_zigzag_scan_4x4_frame_neon;
+#if HAVE_AARCH64
+    pf_interlaced->scan_4x4   = x264_zigzag_scan_4x4_field_neon;
+    pf_interlaced->scan_8x8   = x264_zigzag_scan_8x8_field_neon;
+    pf_interlaced->sub_4x4    = x264_zigzag_sub_4x4_field_neon;
+    pf_interlaced->sub_4x4ac  = x264_zigzag_sub_4x4ac_field_neon;
+    pf_interlaced->sub_8x8    = x264_zigzag_sub_8x8_field_neon;
+    pf_progressive->scan_8x8  = x264_zigzag_scan_8x8_frame_neon;
+    pf_progressive->sub_4x4   = x264_zigzag_sub_4x4_frame_neon;
+    pf_progressive->sub_4x4ac = x264_zigzag_sub_4x4ac_frame_neon;
+    pf_progressive->sub_8x8   = x264_zigzag_sub_8x8_frame_neon;
+#endif // HAVE_AARCH64
+}
+#endif

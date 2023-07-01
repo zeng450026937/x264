@@ -1,9 +1,9 @@
 /*****************************************************************************
- * bitstream-a.S: aarch64 bitstream functions
+ * bitstream-a-sve2.S: aarch64 bitstream functions
  *****************************************************************************
  * Copyright (C) 2014-2023 x264 project
  *
- * Authors: Janne Grunau <janne-x264@jannau.net>
+ * Authors: David Chen <david.chen@myais.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,14 @@
  * For more information, contact us at licensing@x264.com.
  *****************************************************************************/
 
-#include "asm.S"
+#include "asm-sve.S"
 
-function nal_escape_neon, export=1
-    movi        v0.16b,  #0xff
-    movi        v4.16b,  #4
+.arch armv8-a+sve2
+
+function nal_escape_sve2, export=1
+    ptrue       p0.b, vl16
+    mov         z0.b, #0xff
+    mov         z4.b, #4
     mov         w3,  #3
     subs        x6,  x1,  x2
     cbz         x6,  99f
@@ -37,15 +40,15 @@ function nal_escape_neon, export=1
     mov         x1,  x2
     b           100f
 16:
-    ld1         {v1.16b}, [x1], #16
-    ext         v2.16b, v0.16b, v1.16b, #14
-    ext         v3.16b, v0.16b, v1.16b, #15
+    ld1b        {z1.b}, p0/z, [x1]
+    add         x1, x1, #16
+    ext         z2.b, { z0.b, z1.b }, #14
+    // sve cmp<cc> greatly decrease performance
+    // So, keeping NEON here
     cmhi        v7.16b, v4.16b, v1.16b
     cmeq        v5.16b, v2.16b, #0
-    cmeq        v6.16b, v3.16b, #0
     and         v5.16b, v5.16b, v7.16b
-    and         v5.16b, v5.16b, v6.16b
-    shrn        v7.8b,  v5.8h,  #4
+    shrn        v7.8b,  v5.8h, #4
     mov         x7,  v7.d[0]
     cbz         x7,  16f
     mov         x6,  #-16

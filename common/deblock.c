@@ -27,6 +27,7 @@
  *****************************************************************************/
 
 #include "common.h"
+#include "deblock.h"
 
 /* Deblocking filter */
 static const uint8_t i_alpha_table[52+12*3] =
@@ -784,22 +785,20 @@ void x264_deblock_init( uint32_t cpu, x264_deblock_function_t *pf, int b_mbaff )
 #endif // HAVE_ALTIVEC
 
 #if HAVE_ARMV6 || HAVE_AARCH64
+#if HAVE_SVE
+    if( cpu&X264_CPU_SVE )
+    {
+        x264_setupDeblockSvePrimitives(pf);
+    }
+    else if (cpu&X264_CPU_NEON) {
+        x264_setupDeblockNeonPrimitives(pf);
+    }
+#elif HAVE_NEON
     if( cpu&X264_CPU_NEON )
     {
-        pf->deblock_luma[1] = x264_deblock_v_luma_neon;
-        pf->deblock_luma[0] = x264_deblock_h_luma_neon;
-        pf->deblock_chroma[1] = x264_deblock_v_chroma_neon;
-        pf->deblock_h_chroma_420 = x264_deblock_h_chroma_neon;
-        pf->deblock_h_chroma_422 = x264_deblock_h_chroma_422_neon;
-        pf->deblock_chroma_420_mbaff = x264_deblock_h_chroma_mbaff_neon;
-        pf->deblock_chroma_420_intra_mbaff = x264_deblock_h_chroma_intra_mbaff_neon;
-        pf->deblock_h_chroma_420_intra = x264_deblock_h_chroma_intra_neon;
-        pf->deblock_h_chroma_422_intra = x264_deblock_h_chroma_422_intra_neon;
-        pf->deblock_chroma_intra[1] = x264_deblock_v_chroma_intra_neon;
-        pf->deblock_luma_intra[0] = x264_deblock_h_luma_intra_neon;
-        pf->deblock_luma_intra[1] = x264_deblock_v_luma_intra_neon;
-        pf->deblock_strength     = x264_deblock_strength_neon;
+        x264_setupDeblockNeonPrimitives(pf);
     }
+#endif
 #endif
 
 #if HAVE_MSA
@@ -822,3 +821,41 @@ void x264_deblock_init( uint32_t cpu, x264_deblock_function_t *pf, int b_mbaff )
     pf->deblock_chroma_422_mbaff = pf->deblock_h_chroma_420;
     pf->deblock_chroma_422_intra_mbaff = pf->deblock_h_chroma_420_intra;
 }
+
+#if HAVE_SVE
+void x264_setupDeblockSvePrimitives(x264_deblock_function_t *pf) {
+    pf->deblock_luma[1] = x264_deblock_v_luma_sve;
+    // Continue using Neon for deblock_luma[0]
+    pf->deblock_luma[0] = x264_deblock_h_luma_neon;
+    pf->deblock_chroma[1] = x264_deblock_v_chroma_sve;
+    pf->deblock_h_chroma_420 = x264_deblock_h_chroma_sve;
+    pf->deblock_h_chroma_422 = x264_deblock_h_chroma_422_sve;
+    pf->deblock_chroma_420_mbaff = x264_deblock_h_chroma_mbaff_sve;
+    pf->deblock_chroma_420_intra_mbaff = x264_deblock_h_chroma_intra_mbaff_sve;
+    pf->deblock_h_chroma_420_intra = x264_deblock_h_chroma_intra_sve;
+    pf->deblock_h_chroma_422_intra = x264_deblock_h_chroma_422_intra_sve;
+    pf->deblock_chroma_intra[1] = x264_deblock_v_chroma_intra_sve;
+    pf->deblock_luma_intra[0] = x264_deblock_h_luma_intra_sve;
+    pf->deblock_luma_intra[1] = x264_deblock_v_luma_intra_sve;
+    // Continue using Neon for deblock_strength
+    pf->deblock_strength     = x264_deblock_strength_neon;
+}
+#endif
+
+#if HAVE_NEON
+void x264_setupDeblockNeonPrimitives(x264_deblock_function_t *pf) {
+    pf->deblock_luma[1] = x264_deblock_v_luma_neon;
+    pf->deblock_luma[0] = x264_deblock_h_luma_neon;
+    pf->deblock_chroma[1] = x264_deblock_v_chroma_neon;
+    pf->deblock_h_chroma_420 = x264_deblock_h_chroma_neon;
+    pf->deblock_h_chroma_422 = x264_deblock_h_chroma_422_neon;
+    pf->deblock_chroma_420_mbaff = x264_deblock_h_chroma_mbaff_neon;
+    pf->deblock_chroma_420_intra_mbaff = x264_deblock_h_chroma_intra_mbaff_neon;
+    pf->deblock_h_chroma_420_intra = x264_deblock_h_chroma_intra_neon;
+    pf->deblock_h_chroma_422_intra = x264_deblock_h_chroma_422_intra_neon;
+    pf->deblock_chroma_intra[1] = x264_deblock_v_chroma_intra_neon;
+    pf->deblock_luma_intra[0] = x264_deblock_h_luma_intra_neon;
+    pf->deblock_luma_intra[1] = x264_deblock_v_luma_intra_neon;
+    pf->deblock_strength     = x264_deblock_strength_neon;
+}
+#endif
