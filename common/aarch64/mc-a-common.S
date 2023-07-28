@@ -5,6 +5,8 @@
  *
  * Authors: David Conrad <lessen42@gmail.com>
  *          Janne Grunau <janne-x264@jannau.net>
+ *          Mans Rullgard <mans@mansr.com>
+ *          Stefan Groenroos <stefan.gronroos@gmail.com>
  *          David Chen   <david.chen@myais.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify

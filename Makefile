@@ -165,19 +165,21 @@ ifeq ($(SYS_ARCH),AARCH64)
 SRCASM_X  = common/aarch64/bitstream-a.S \
             common/aarch64/cabac-a.S \
             common/aarch64/dct-a.S \
-			common/aarch64/dct-a-common.S \
+            common/aarch64/dct-a-common.S \
             common/aarch64/deblock-a.S \
-			common/aarch64/deblock-a-common.S \
+            common/aarch64/deblock-a-common.S \
             common/aarch64/mc-a.S \
-			common/aarch64/mc-a-common.S \
+            common/aarch64/mc-a-common.S \
             common/aarch64/pixel-a.S \
+			common/aarch64/pixel-a-common.S \
             common/aarch64/predict-a.S \
             common/aarch64/quant-a.S
 ifneq ($(findstring HAVE_SVE 1, $(CONFIG)),)
 SRCASM_X += common/aarch64/asm-sve.S \
             common/aarch64/dct-a-sve.S \
             common/aarch64/deblock-a-sve.S \
-			common/aarch64/mc-a-sve.S
+            common/aarch64/mc-a-sve.S \
+            common/aarch64/pixel-a-sve.S
 endif
 ifneq ($(findstring HAVE_SVE2 1, $(CONFIG)),)
 SRCASM_X += common/aarch64/bitstream-a-sve2.S \
