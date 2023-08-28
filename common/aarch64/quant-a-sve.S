@@ -55,6 +55,10 @@ function decimate_score64_sve, export=1
     cmpeq       p4.b, p0/z, z19.b, #0 
     umax        v4.16b, v4.16b, v5.16b
     umax        v6.16b, v6.16b, v7.16b
+    movi        v0.2d, #0
+    movi        v1.2d, #0
+    movi        v2.2d, #0
+    movi        v3.2d, #0
     mov         z0.b, p1/m, z30.b
     mov         z1.b, p2/m, z30.b
     mov         z2.b, p3/m, z30.b

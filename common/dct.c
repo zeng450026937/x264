@@ -1146,7 +1146,7 @@ void x264_setupDctSve2Primitives(x264_dct_function_t *dctf) {
     dctf->add16x16_idct_dc = x264_add16x16_idct_dc_neon;
     dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_sve;
     dctf->dct4x4dc      = x264_dct4x4dc_sve2;
-    dctf->idct4x4dc     = x264_idct4x4dc_sve;
+    dctf->idct4x4dc     = x264_idct4x4dc_neon;
 
     dctf->add4x4_idct   = x264_add4x4_idct_sve2;
     dctf->add8x8_idct   = x264_add8x8_idct_sve2;
@@ -1190,7 +1190,7 @@ void x264_setupDctSvePrimitives(x264_dct_function_t *dctf){
     dctf->add16x16_idct_dc = x264_add16x16_idct_dc_neon;
     dctf->sub8x8_dct_dc = x264_sub8x8_dct_dc_sve;
     dctf->dct4x4dc      = x264_dct4x4dc_neon;
-    dctf->idct4x4dc     = x264_idct4x4dc_sve;
+    dctf->idct4x4dc     = x264_idct4x4dc_neon;
 
     dctf->add4x4_idct   = x264_add4x4_idct_neon;
     dctf->add8x8_idct   = x264_add8x8_idct_neon;

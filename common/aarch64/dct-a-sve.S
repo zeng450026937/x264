@@ -28,38 +28,6 @@
 
 .arch armv8-a+sve
 
-function idct4x4dc_sve, export=1
-    // We cannot take advantage of vector sizes greater than 128 bits
-    // here so we cannot use VL
-    mov         x11, #4
-    mov         x12, #8
-    mov         x13, #12
-    ptrue       p0.h, vl8
-    ld1h        {z0.h}, p0/z, [x0]
-    ld1h        {z1.h}, p0/z, [x0, x12, lsl #1]
-    uunpklo     z2.s, z0.h
-    uunpkhi     z3.s, z0.h
-    uunpklo     z4.s, z1.h
-    uunpkhi     z5.s, z1.h
-    SUMSUB_AB   z27.h, z28.h, z2.h, z3.h
-    SUMSUB_AB   z29.h, z30.h, z4.h, z5.h
-    SUMSUB_AB   z0.h, z2.h, z27.h, z29.h
-    SUMSUB_AB   z3.h, z1.h, z28.h, z30.h
-    transpose   z4.s, z6.s, z0.s, z2.s
-    transpose   z5.s, z7.s, z1.s, z3.s
-    SUMSUB_AB   z0.h, z2.h, z4.h, z6.h
-    SUMSUB_AB   z1.h, z3.h, z5.h, z7.h
-    transpose   z4.d, z5.d, z0.d, z1.d
-    transpose   z6.d, z7.d, z2.d, z3.d
-    SUMSUB_AB   z0.h, z1.h, z4.h, z5.h
-    SUMSUB_AB   z3.h, z2.h, z6.h, z7.h
-    st1h       {z0.s}, p0, [x0]
-    st1h       {z1.s}, p0, [x0, x11, lsl #1]
-    st1h       {z2.s}, p0, [x0, x12, lsl #1]
-    st1h       {z3.s}, p0, [x0, x13, lsl #1]
-    ret
-endfunc
-
 function sub4x4_dct_sve, export=1
     mov         x3, #FENC_STRIDE
     mov         x4, #FDEC_STRIDE
@@ -129,10 +97,10 @@ function sub8x4_dct_sve
     add         z2.h, z22.h, z18.h
     sub         z3.h, z19.h, z21.h
 
-    zip1        z4.d, z0.d, z2.d
-    zip2        z6.d, z0.d, z2.d
-    zip1        z5.d, z1.d, z3.d
-    zip2        z7.d, z1.d, z3.d
+    zip1        v4.2d,  v0.2d,  v2.2d
+    zip2        v6.2d,  v0.2d,  v2.2d
+    zip1        v5.2d,  v1.2d,  v3.2d
+    zip2        v7.2d,  v1.2d,  v3.2d
 
     // Use NEON st1 here for improving performance
     st1        {v4.8h}, [x0], #16
