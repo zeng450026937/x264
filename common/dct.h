@@ -74,4 +74,17 @@ void x264_dct_init( uint32_t cpu, x264_dct_function_t *dctf );
 #define x264_zigzag_init x264_template(zigzag_init)
 void x264_zigzag_init( uint32_t cpu, x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced );
 
+#define x264_setupDctSve2Primitives x264_template(setupDctSve2Primitives)
+void x264_setupDctSve2Primitives(x264_dct_function_t *dctf);
+#define x264_setupDctSvePrimitives x264_template(setupDctSvePrimitives)
+void x264_setupDctSvePrimitives(x264_dct_function_t *dctf);
+#define x264_setupDctNeonPrimitives x264_template(setupDctNeonPrimitives)
+void x264_setupDctNeonPrimitives(x264_dct_function_t *dctf);
+#define x264_setupZigZagSve2Primitives x264_template(setupZigZagSve2Primitives)
+void x264_setupZigZagSve2Primitives(x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced);
+#define x264_setupZigZagSvePrimitives x264_template(setupZigZagSvePrimitives)
+void x264_setupZigZagSvePrimitives(x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced);
+#define x264_setupZigZagNeonPrimitives x264_template(setupZigZagNeonPrimitives)
+void x264_setupZigZagNeonPrimitives(x264_zigzag_function_t *pf_progressive, x264_zigzag_function_t *pf_interlaced);
+
 #endif

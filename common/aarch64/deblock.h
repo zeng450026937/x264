@@ -26,6 +26,8 @@
 #ifndef X264_AARCH64_DEBLOCK_H
 #define X264_AARCH64_DEBLOCK_H
 
+// ############### NEON #################
+
 #define x264_deblock_v_luma_neon x264_template(deblock_v_luma_neon)
 void x264_deblock_v_luma_neon  ( uint8_t *pix, intptr_t stride, int alpha, int beta, int8_t *tc0 );
 #define x264_deblock_h_luma_neon x264_template(deblock_h_luma_neon)
@@ -54,5 +56,30 @@ void x264_deblock_v_chroma_intra_neon( uint8_t *pix, intptr_t stride, int alpha,
 void x264_deblock_h_luma_intra_neon( uint8_t *pix, intptr_t stride, int alpha, int beta );
 #define x264_deblock_v_luma_intra_neon x264_template(deblock_v_luma_intra_neon)
 void x264_deblock_v_luma_intra_neon( uint8_t *pix, intptr_t stride, int alpha, int beta );
+
+// ############### SVE/SVE2 #################
+
+#define x264_deblock_v_luma_sve x264_template(deblock_v_luma_sve)
+void x264_deblock_v_luma_sve  ( uint8_t *pix, intptr_t stride, int alpha, int beta, int8_t *tc0 );
+#define x264_deblock_v_chroma_sve x264_template(deblock_v_chroma_sve)
+void x264_deblock_v_chroma_sve( uint8_t *pix, intptr_t stride, int alpha, int beta, int8_t *tc0 );
+#define x264_deblock_h_chroma_sve x264_template(deblock_h_chroma_sve)
+void x264_deblock_h_chroma_sve( uint8_t *pix, intptr_t stride, int alpha, int beta, int8_t *tc0 );
+#define x264_deblock_h_chroma_422_sve x264_template(deblock_h_chroma_422_sve)
+void x264_deblock_h_chroma_422_sve( uint8_t *pix, intptr_t stride, int alpha, int beta, int8_t *tc0 );
+#define x264_deblock_h_chroma_mbaff_sve x264_template(deblock_h_chroma_mbaff_sve)
+void x264_deblock_h_chroma_mbaff_sve( uint8_t *pix, intptr_t stride, int alpha, int beta, int8_t *tc0 );
+#define x264_deblock_h_chroma_intra_mbaff_sve x264_template(deblock_h_chroma_intra_mbaff_sve)
+void x264_deblock_h_chroma_intra_mbaff_sve( uint8_t *pix, intptr_t stride, int alpha, int beta );
+#define x264_deblock_h_chroma_intra_sve x264_template(deblock_h_chroma_intra_sve)
+void x264_deblock_h_chroma_intra_sve( uint8_t *pix, intptr_t stride, int alpha, int beta );
+#define x264_deblock_h_chroma_422_intra_sve x264_template(deblock_h_chroma_422_intra_sve)
+void x264_deblock_h_chroma_422_intra_sve( uint8_t *pix, intptr_t stride, int alpha, int beta );
+#define x264_deblock_h_luma_intra_sve x264_template(deblock_h_luma_intra_sve)
+void x264_deblock_h_luma_intra_sve( uint8_t *pix, intptr_t stride, int alpha, int beta );
+#define x264_deblock_v_chroma_intra_sve x264_template(deblock_v_chroma_intra_sve)
+void x264_deblock_v_chroma_intra_sve( uint8_t *pix, intptr_t stride, int alpha, int beta );
+#define x264_deblock_v_luma_intra_sve x264_template(deblock_v_luma_intra_sve)
+void x264_deblock_v_luma_intra_sve( uint8_t *pix, intptr_t stride, int alpha, int beta );
 
 #endif

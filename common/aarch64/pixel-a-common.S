@@ -1,9 +1,11 @@
-/*****************************************************************************
- * bitstream.h: aarch64 bitstream functions
+/****************************************************************************
+ * pixel-a-common.S: aarch64 motion compensation
  *****************************************************************************
- * Copyright (C) 2017-2023 x264 project
+ * Copyright (C) 2009-2023 x264 project
  *
- * Authors: Anton Mitrofanov <BugMaster@narod.ru>
+ * Authors: David Conrad <lessen42@gmail.com>
+ *          Janne Grunau <janne-x264@jannau.net>
+ *          David Chen   <david.chen@myais.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +25,23 @@
  * For more information, contact us at licensing@x264.com.
  *****************************************************************************/
 
-#ifndef X264_AARCH64_BITSTREAM_H
-#define X264_AARCH64_BITSTREAM_H
+// This file contains the macros written using NEON instruction set
+// that are also used by the SVE/SVE2 functions
 
-#define x264_nal_escape_neon x264_template(nal_escape_neon)
-uint8_t *x264_nal_escape_neon( uint8_t *dst, uint8_t *src, uint8_t *end );
+#include "asm.S"
 
-#define x264_nal_escape_sve2 x264_template(nal_escape_sve2)
-uint8_t *x264_nal_escape_sve2( uint8_t *dst, uint8_t *src, uint8_t *end );
+const mask_ac_4_8
+.short 0, -1, -1, -1,  0, -1, -1, -1
+.short 0, -1, -1, -1, -1, -1, -1, -1
+endconst
 
-#endif
+.macro SUMSUB_ABCD s1, d1, s2, d2, a, b, c, d
+    SUMSUB_AB   \s1, \d1, \a, \b
+    SUMSUB_AB   \s2, \d2, \c, \d
+.endm
+
+.macro HADAMARD4_V r1, r2, r3, r4, t1, t2, t3, t4
+    SUMSUB_ABCD \t1, \t2, \t3, \t4, \r1, \r2, \r3, \r4
+    SUMSUB_ABCD \r1, \r3, \r2, \r4, \t1, \t3, \t2, \t4
+.endm
+

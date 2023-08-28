@@ -25,59 +25,7 @@
  *****************************************************************************/
 
 #include "asm.S"
-
-const scan4x4_frame, align=4
-.byte    0,1,   8,9,   2,3,   4,5
-.byte   10,11, 16,17, 24,25, 18,19
-.byte   12,13,  6,7,  14,15, 20,21
-.byte   26,27, 28,29, 22,23, 30,31
-endconst
-
-const scan4x4_field, align=4
-.byte    0,1,   2,3,   8,9,   4,5
-.byte    6,7,  10,11, 12,13, 14,15
-endconst
-
-const sub4x4_frame, align=4
-.byte    0,  1,  4,  8
-.byte    5,  2,  3,  6
-.byte    9, 12, 13, 10
-.byte    7, 11, 14, 15
-endconst
-
-const sub4x4_field, align=4
-.byte    0,  4,  1,  8
-.byte   12,  5,  9, 13
-.byte    2,  6, 10, 14
-.byte    3,  7, 11, 15
-endconst
-
-// sum = a + (b>>shift)   sub = (a>>shift) - b
-.macro SUMSUB_SHR shift sum sub a b t0 t1
-    sshr        \t0,  \b, #\shift
-    sshr        \t1,  \a, #\shift
-    add         \sum, \a, \t0
-    sub         \sub, \t1, \b
-.endm
-
-// sum = (a>>shift) + b   sub = a - (b>>shift)
-.macro SUMSUB_SHR2 shift sum sub a b t0 t1
-    sshr        \t0,  \a, #\shift
-    sshr        \t1,  \b, #\shift
-    add         \sum, \t0, \b
-    sub         \sub, \a, \t1
-.endm
-
-// a += 1.5*ma   b -= 1.5*mb
-.macro SUMSUB_15 a b ma mb t0 t1
-    sshr        \t0, \ma, #1
-    sshr        \t1, \mb, #1
-    add         \t0, \t0, \ma
-    add         \t1, \t1, \mb
-    add         \a,  \a,  \t0
-    sub         \b,  \b,  \t1
-.endm
-
+#include "dct-a-common.S"
 
 function dct4x4dc_neon, export=1
     ld1        {v0.4h,v1.4h,v2.4h,v3.4h}, [x0]
@@ -120,17 +68,6 @@ function idct4x4dc_neon, export=1
     ret
 endfunc
 
-.macro DCT_1D v0 v1 v2 v3 v4 v5 v6 v7
-    SUMSUB_AB   \v1, \v6, \v5, \v6
-    SUMSUB_AB   \v3, \v7, \v4, \v7
-    add         \v0, \v3, \v1
-    add         \v4, \v7, \v7
-    add         \v5, \v6, \v6
-    sub         \v2, \v3, \v1
-    add         \v1, \v4, \v6
-    sub         \v3, \v7, \v5
-.endm
-
 function sub4x4_dct_neon, export=1
     mov         x3, #FENC_STRIDE
     mov         x4, #FDEC_STRIDE
@@ -148,7 +85,7 @@ function sub4x4_dct_neon, export=1
     usubl       v19.8h, v6.8b,  v7.8b
 
     DCT_1D      v0.4h, v1.4h, v2.4h, v3.4h, v16.4h, v17.4h, v18.4h, v19.4h
-    transpose4x4.h v0, v1, v2, v3, v4, v5, v6, v7
+    transpose4x4.h_neon v0, v1, v2, v3, v4, v5, v6, v7
     DCT_1D      v4.4h, v5.4h, v6.4h, v7.4h, v0.4h, v1.4h, v2.4h, v3.4h
     st1        {v4.4h,v5.4h,v6.4h,v7.4h}, [x0]
     ret
@@ -169,7 +106,7 @@ function sub8x4_dct_neon
     usubl       v19.8h, v6.8b,  v7.8b
 
     DCT_1D      v0.8h, v1.8h, v2.8h, v3.8h, v16.8h, v17.8h, v18.8h, v19.8h
-    transpose4x8.h  v0, v1, v2, v3, v4, v5, v6, v7
+    transpose4x8.h_neon  v0, v1, v2, v3, v4, v5, v6, v7
 
     SUMSUB_AB   v16.8h, v19.8h, v0.8h,  v3.8h
     SUMSUB_AB   v17.8h, v18.8h, v1.8h,  v2.8h
@@ -284,7 +221,7 @@ function sub8x8_dct8_neon, export=1
     usubl       v7.8h,  v30.8b, v31.8b
 
     DCT8_1D row
-    transpose8x8.h v0, v1, v2, v3, v4, v5, v6, v7, v30, v31
+    transpose8x8.h_neon v0, v1, v2, v3, v4, v5, v6, v7, v30, v31
     DCT8_1D col
 
     st1        {v0.8h,v1.8h,v2.8h,v3.8h}, [x0], #64
@@ -307,16 +244,6 @@ function sub16x16_dct8_neon, export=1
     b           X(sub8x8_dct8_neon)
 endfunc
 
-
-// First part of IDCT (minus final SUMSUB_BA)
-.macro IDCT_1D d4 d5 d6 d7 d0 d1 d2 d3
-    SUMSUB_AB   \d4, \d5, \d0, \d2
-    sshr        \d7, \d1, #1
-    sshr        \d6, \d3, #1
-    sub         \d7, \d7, \d3
-    add         \d6, \d6, \d1
-.endm
-
 function add4x4_idct_neon, export=1
     mov         x2, #FDEC_STRIDE
     ld1        {v0.4h,v1.4h,v2.4h,v3.4h}, [x1]
@@ -326,7 +253,7 @@ function add4x4_idct_neon, export=1
     SUMSUB_AB   v0.4h, v2.4h, v4.4h, v6.4h
     SUMSUB_AB   v1.4h, v3.4h, v5.4h, v7.4h
 
-    transpose4x4.h v0, v1, v3, v2, v16, v17, v18, v19
+    transpose4x4.h_neon v0, v1, v3, v2, v16, v17, v18, v19
 
     IDCT_1D     v4.4h, v5.4h, v6.4h, v7.4h, v0.4h, v1.4h, v3.4h, v2.4h
     ld1        {v29.s}[0], [x0], x2
@@ -366,7 +293,7 @@ function add8x4_idct_neon, export=1
     SUMSUB_AB   v0.8h,  v3.8h,  v16.8h, v18.8h
     SUMSUB_AB   v1.8h,  v2.8h,  v17.8h, v19.8h
 
-    transpose4x8.h v0, v1, v2, v3, v4, v5, v6, v7
+    transpose4x8.h_neon v0, v1, v2, v3, v4, v5, v6, v7
 
     IDCT_1D     v16.8h, v17.8h, v18.8h, v19.8h, v0.8h, v1.8h, v2.8h, v3.8h
     SUMSUB_AB   v0.8h,  v3.8h,  v16.8h, v18.8h
@@ -423,29 +350,6 @@ function add16x16_idct_neon, export=1
     b               X(add8x4_idct_neon)
 endfunc
 
-.macro IDCT8_1D type
-    SUMSUB_AB   v0.8h,  v1.8h,  v16.8h, v20.8h          // a0/a2
-.ifc \type, row
-    ld1        {v22.8h,v23.8h}, [x1], #32
-.endif
-    SUMSUB_SHR  1, v2.8h,  v3.8h,  v18.8h, v22.8h, v16.8h, v20.8h   // a6/a4
-    SUMSUB_AB   v16.8h, v18.8h, v21.8h, v19.8h
-    SUMSUB_15   v16.8h, v18.8h, v17.8h, v23.8h, v20.8h, v22.8h      // a7/a1
-    SUMSUB_AB   v22.8h, v23.8h, v23.8h, v17.8h
-    SUMSUB_15   v23.8h, v22.8h, v21.8h, v19.8h, v20.8h, v17.8h      // a5/a3
-
-    SUMSUB_SHR  2, v21.8h, v22.8h, v22.8h, v23.8h, v19.8h, v17.8h   // b3/b5
-    SUMSUB_SHR2 2, v20.8h, v23.8h, v16.8h, v18.8h, v19.8h, v17.8h   // b1/b7
-
-    SUMSUB_AB   v18.8h, v2.8h,  v0.8h,  v2.8h           // b0/b6
-    SUMSUB_AB   v19.8h, v3.8h,  v1.8h,  v3.8h           // b2/b4
-
-    SUMSUB_AB   v16.8h, v23.8h, v18.8h, v23.8h
-    SUMSUB_AB   v17.8h, v22.8h, v19.8h, v22.8h
-    SUMSUB_AB   v18.8h, v21.8h, v3.8h,  v21.8h
-    SUMSUB_AB   v19.8h, v20.8h, v2.8h,  v20.8h
-.endm
-
 function add8x8_idct8_neon, export=1
     mov         x2,  #FDEC_STRIDE
     ld1        {v16.8h,v17.8h}, [x1], #32
@@ -454,7 +358,7 @@ function add8x8_idct8_neon, export=1
 
     IDCT8_1D    row
 
-    transpose8x8.h v16, v17, v18, v19, v20, v21, v22, v23, v30, v31
+    transpose8x8.h_neon v16, v17, v18, v19, v20, v21, v22, v23, v30, v31
 
     IDCT8_1D    col
 
@@ -622,7 +526,7 @@ function add16x16_idct_dc_neon, export=1
     ret
 endfunc
 
-.macro sub4x4x2_dct_dc, dst, t0, t1, t2, t3, t4, t5, t6, t7
+.macro sub4x4x2_dct_dc_neon, dst, t0, t1, t2, t3, t4, t5, t6, t7
     ld1        {\t0\().8b}, [x1], x3
     ld1        {\t1\().8b}, [x2], x4
     ld1        {\t2\().8b}, [x1], x3
@@ -644,8 +548,8 @@ function sub8x8_dct_dc_neon, export=1
     mov             x3,  #FENC_STRIDE
     mov             x4,  #FDEC_STRIDE
 
-    sub4x4x2_dct_dc  v0, v16, v17, v18, v19, v20, v21, v22, v23
-    sub4x4x2_dct_dc  v1, v24, v25, v26, v27, v28, v29, v30, v31
+    sub4x4x2_dct_dc_neon  v0, v16, v17, v18, v19, v20, v21, v22, v23
+    sub4x4x2_dct_dc_neon  v1, v24, v25, v26, v27, v28, v29, v30, v31
 
     transpose   v2.2d,  v3.2d,  v0.2d,  v1.2d
     SUMSUB_AB   v0.8h,  v1.8h,  v2.8h,  v3.8h
@@ -663,10 +567,10 @@ endfunc
 function sub8x16_dct_dc_neon, export=1
     mov             x3,  #FENC_STRIDE
     mov             x4,  #FDEC_STRIDE
-    sub4x4x2_dct_dc  v0, v16, v17, v18, v19, v20, v21, v22, v23
-    sub4x4x2_dct_dc  v1, v24, v25, v26, v27, v28, v29, v30, v31
-    sub4x4x2_dct_dc  v2, v16, v17, v18, v19, v20, v21, v22, v23
-    sub4x4x2_dct_dc  v3, v24, v25, v26, v27, v28, v29, v30, v31
+    sub4x4x2_dct_dc_neon  v0, v16, v17, v18, v19, v20, v21, v22, v23
+    sub4x4x2_dct_dc_neon  v1, v24, v25, v26, v27, v28, v29, v30, v31
+    sub4x4x2_dct_dc_neon  v2, v16, v17, v18, v19, v20, v21, v22, v23
+    sub4x4x2_dct_dc_neon  v3, v24, v25, v26, v27, v28, v29, v30, v31
 
     addp             v4.8h,  v0.8h,  v2.8h
     addp             v5.8h,  v1.8h,  v3.8h
@@ -814,33 +718,6 @@ function zigzag_scan_8x8_frame_neon, export=1
     ret
 endfunc
 
-#define Z(z)   2*(z), 2*(z)+1
-#define T(x,y) Z(x*8+y)
-const scan8x8_frame, align=5
-    .byte T(0,0), T(1,0), T(0,1), T(0,2)
-    .byte T(1,1), T(2,0), T(3,0), T(2,1)
-    .byte T(1,2), T(0,3), T(0,4), T(1,3)
-    .byte T(2,2), T(3,1), T(4,0), T(5,0)
-    .byte T(4,1), T(3,2), T(2,3), T(1,4)
-    .byte T(0,5), T(0,6), T(1,5), T(2,4)
-#undef T
-#define T(x,y) Z((x-3)*8+y)
-    .byte T(3,3), T(4,2), T(5,1), T(6,0)
-    .byte T(7,0), T(6,1), T(5,2), T(4,3)
-#undef T
-#define T(x,y) Z((x-0)*8+y)
-    .byte T(3,4), T(2,5), T(1,6), T(0,7)
-    .byte T(1,7), T(2,6), T(3,5), T(4,4)
-#undef T
-#define T(x,y) Z((x-4)*8+y)
-    .byte T(5,3), T(6,2), T(7,1), T(7,2)
-    .byte T(6,3), T(5,4), T(4,5), T(3,6)
-    .byte T(2,7), T(3,7), T(4,6), T(5,5)
-    .byte T(6,4), T(7,3), T(7,4), T(6,5)
-    .byte T(5,6), T(4,7), T(5,7), T(6,6)
-    .byte T(7,5), T(7,6), T(6,7), T(7,7)
-endconst
-
 function zigzag_scan_8x8_field_neon, export=1
     movrel      x2,  scan8x8_field
     ld1        {v0.8h,v1.8h},   [x1], #32
@@ -936,73 +813,3 @@ endfunc
 
 zigzag_sub8x8 field
 zigzag_sub8x8 frame
-
-#undef T
-#define T(x,y) Z(x*8+y)
-const scan8x8_field, align=5
-    .byte T(0,0), T(0,1), T(0,2), T(1,0)
-    .byte T(1,1), T(0,3), T(0,4), T(1,2)
-    .byte T(2,0), T(1,3), T(0,5), T(0,6)
-    .byte T(0,7), T(1,4), T(2,1), T(3,0)
-#undef T
-#define T(x,y) Z((x-1)*8+y)
-    .byte T(2,2), T(1,5), T(1,6), T(1,7)
-    .byte T(2,3), T(3,1), T(4,0), T(3,2)
-#undef T
-#define T(x,y) Z((x-2)*8+y)
-    .byte T(2,4), T(2,5), T(2,6), T(2,7)
-    .byte T(3,3), T(4,1), T(5,0), T(4,2)
-#undef T
-#define T(x,y) Z((x-3)*8+y)
-    .byte T(3,4), T(3,5), T(3,6), T(3,7)
-    .byte T(4,3), T(5,1), T(6,0), T(5,2)
-#undef T
-#define T(x,y) Z((x-4)*8+y)
-    .byte T(4,4), T(4,5), T(4,6), T(4,7)
-    .byte T(5,3), T(6,1), T(6,2), T(5,4)
-#undef T
-#define T(x,y) Z((x-5)*8+y)
-    .byte T(5,5), T(5,6), T(5,7), T(6,3)
-    .byte T(7,0), T(7,1), T(6,4), T(6,5)
-endconst
-
-
-#undef T
-#define T(y,x) x*8+y
-const sub8x8_frame, align=5
-    .byte T(0,0), T(1,0), T(0,1), T(0,2)
-    .byte T(1,1), T(2,0), T(3,0), T(2,1)
-    .byte T(1,2), T(0,3), T(0,4), T(1,3)
-    .byte T(2,2), T(3,1), T(4,0), T(5,0)
-    .byte T(4,1), T(3,2), T(2,3), T(1,4)
-    .byte T(0,5), T(0,6), T(1,5), T(2,4)
-    .byte T(3,3), T(4,2), T(5,1), T(6,0)
-    .byte T(7,0), T(6,1), T(5,2), T(4,3)
-    .byte T(3,4), T(2,5), T(1,6), T(0,7)
-    .byte T(1,7), T(2,6), T(3,5), T(4,4)
-    .byte T(5,3), T(6,2), T(7,1), T(7,2)
-    .byte T(6,3), T(5,4), T(4,5), T(3,6)
-    .byte T(2,7), T(3,7), T(4,6), T(5,5)
-    .byte T(6,4), T(7,3), T(7,4), T(6,5)
-    .byte T(5,6), T(4,7), T(5,7), T(6,6)
-    .byte T(7,5), T(7,6), T(6,7), T(7,7)
-endconst
-
-const sub8x8_field, align=5
-    .byte T(0,0), T(0,1), T(0,2), T(1,0)
-    .byte T(1,1), T(0,3), T(0,4), T(1,2)
-    .byte T(2,0), T(1,3), T(0,5), T(0,6)
-    .byte T(0,7), T(1,4), T(2,1), T(3,0)
-    .byte T(2,2), T(1,5), T(1,6), T(1,7)
-    .byte T(2,3), T(3,1), T(4,0), T(3,2)
-    .byte T(2,4), T(2,5), T(2,6), T(2,7)
-    .byte T(3,3), T(4,1), T(5,0), T(4,2)
-    .byte T(3,4), T(3,5), T(3,6), T(3,7)
-    .byte T(4,3), T(5,1), T(6,0), T(5,2)
-    .byte T(4,4), T(4,5), T(4,6), T(4,7)
-    .byte T(5,3), T(6,1), T(6,2), T(5,4)
-    .byte T(5,5), T(5,6), T(5,7), T(6,3)
-    .byte T(7,0), T(7,1), T(6,4), T(6,5)
-    .byte T(6,6), T(6,7), T(7,2), T(7,3)
-    .byte T(7,4), T(7,5), T(7,6), T(7,7)
-endconst

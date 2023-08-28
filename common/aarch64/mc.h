@@ -29,4 +29,9 @@
 #define x264_mc_init_aarch64 x264_template(mc_init_aarch64)
 void x264_mc_init_aarch64( uint32_t cpu, x264_mc_functions_t *pf );
 
+#define x264_setupMcNeonPrivitives x264_template(setupMcNeonPrivitives)
+void x264_setupMcNeonPrivitives( x264_mc_functions_t *pf );
+#define x264_setupMcSvePrivitives x264_template(setupMcSvePrivitives)
+void x264_setupMcSvePrivitives( x264_mc_functions_t *pf );
+
 #endif

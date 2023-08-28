@@ -1,9 +1,9 @@
 /*****************************************************************************
- * bitstream.h: aarch64 bitstream functions
+ * dct.h: deblocking
  *****************************************************************************
- * Copyright (C) 2017-2023 x264 project
+ * Copyright (C) 2003-2023 x264 project
  *
- * Authors: Anton Mitrofanov <BugMaster@narod.ru>
+ * Authors: David Chen <david.chen@myais.com.cn>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,9 @@
  * For more information, contact us at licensing@x264.com.
  *****************************************************************************/
 
-#ifndef X264_AARCH64_BITSTREAM_H
-#define X264_AARCH64_BITSTREAM_H
+#include "common.h"
 
-#define x264_nal_escape_neon x264_template(nal_escape_neon)
-uint8_t *x264_nal_escape_neon( uint8_t *dst, uint8_t *src, uint8_t *end );
-
-#define x264_nal_escape_sve2 x264_template(nal_escape_sve2)
-uint8_t *x264_nal_escape_sve2( uint8_t *dst, uint8_t *src, uint8_t *end );
-
-#endif
+#define x264_setupDeblockSvePrimitives x264_template(setupDeblockSvePrimitives)
+void x264_setupDeblockSvePrimitives(x264_deblock_function_t *pf);
+#define x264_setupDeblockNeonPrimitives x264_template(setupDeblockNeonPrimitives)
+void x264_setupDeblockNeonPrimitives(x264_deblock_function_t *pf);

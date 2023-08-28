@@ -54,6 +54,8 @@ int x264_decimate_score15_neon( int16_t * );
 int x264_decimate_score16_neon( int16_t * );
 #define x264_decimate_score64_neon x264_template(decimate_score64_neon)
 int x264_decimate_score64_neon( int16_t * );
+#define x264_decimate_score64_sve x264_template(decimate_score64_sve)
+int x264_decimate_score64_sve( int16_t * );
 
 #define x264_coeff_last4_aarch64 x264_template(coeff_last4_aarch64)
 int x264_coeff_last4_aarch64( int16_t * );

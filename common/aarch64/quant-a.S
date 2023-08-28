@@ -26,6 +26,7 @@
  *****************************************************************************/
 
 #include "asm.S"
+#include "quant-a-common.S"
 
 .macro QUANT_TWO bias0 bias1 mf0_1 mf2_3 mask
     add         v18.8h, v18.8h, \bias0
@@ -343,10 +344,6 @@ endfunc
 decimate_score_1x 15
 decimate_score_1x 16
 
-const mask64, align=6
-    .byte  0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-    .byte  0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
-endconst
 
 function decimate_score64_neon, export=1
     ld1        {v0.8h,v1.8h}, [x0], #32

@@ -25,6 +25,9 @@
  * For more information, contact us at licensing@x264.com.
  *****************************************************************************/
 
+#ifndef ASM_S_  // #include guards
+#define ASM_S_
+
 #include "config.h"
 
 #define GLUE(a, b) a ## b
@@ -147,22 +150,21 @@ MACH    .const_data
     trn2        \t2,  \s1,  \s2
 .endm
 
-.macro transpose4x4.h v0, v1, v2, v3, t0, t1, t2, t3
+.macro transpose4x4.h_neon v0, v1, v2, v3, t0, t1, t2, t3
     transpose   \t0\().2s,  \t2\().2s,  \v0\().2s,  \v2\().2s
     transpose   \t1\().2s,  \t3\().2s,  \v1\().2s,  \v3\().2s
     transpose   \v0\().4h,  \v1\().4h,  \t0\().4h,  \t1\().4h
     transpose   \v2\().4h,  \v3\().4h,  \t2\().4h,  \t3\().4h
 .endm
 
-.macro transpose4x8.h v0, v1, v2, v3, t0, t1, t2, t3
+.macro transpose4x8.h_neon v0, v1, v2, v3, t0, t1, t2, t3
     transpose   \t0\().4s,  \t2\().4s,  \v0\().4s,  \v2\().4s
     transpose   \t1\().4s,  \t3\().4s,  \v1\().4s,  \v3\().4s
     transpose   \v0\().8h,  \v1\().8h,  \t0\().8h,  \t1\().8h
     transpose   \v2\().8h,  \v3\().8h,  \t2\().8h,  \t3\().8h
 .endm
 
-
-.macro transpose8x8.h r0, r1, r2, r3, r4, r5, r6, r7, r8, r9
+.macro transpose8x8.h_neon r0, r1, r2, r3, r4, r5, r6, r7, r8, r9
     trn1        \r8\().8H,  \r0\().8H,  \r1\().8H
     trn2        \r9\().8H,  \r0\().8H,  \r1\().8H
     trn1        \r1\().8H,  \r2\().8H,  \r3\().8H
@@ -194,7 +196,7 @@ MACH    .const_data
     trn2        \r7\().2D,  \r9\().2D,  \r7\().2D
 .endm
 
-.macro  transpose_8x16.b r0, r1, r2, r3, r4, r5, r6, r7, t0, t1
+.macro  transpose_8x16_neon.b r0, r1, r2, r3, r4, r5, r6, r7, t0, t1
     trn1        \t0\().16b, \r0\().16b, \r1\().16b
     trn2        \t1\().16b, \r0\().16b, \r1\().16b
     trn1        \r1\().16b, \r2\().16b, \r3\().16b
@@ -226,7 +228,7 @@ MACH    .const_data
     trn2        \r7\().4s,  \t1\().4s,  \r7\().4s
 .endm
 
-.macro  transpose_4x16.b r0, r1, r2, r3, t4, t5, t6, t7
+.macro  transpose_4x16_neon.b r0, r1, r2, r3, t4, t5, t6, t7
     trn1        \t4\().16b, \r0\().16b,  \r1\().16b
     trn2        \t5\().16b, \r0\().16b,  \r1\().16b
     trn1        \t6\().16b, \r2\().16b,  \r3\().16b
@@ -249,3 +251,5 @@ MACH    .const_data
     trn1        \r1\().4h,  \t5\().4h,  \t7\().4h
     trn2        \r3\().4h,  \t5\().4h,  \t7\().4h
 .endm
+
+#endif
