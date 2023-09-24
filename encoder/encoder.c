@@ -3108,11 +3108,15 @@ cont:
             /* Do hpel now */
             for( int mb_y = h->i_threadslice_start; mb_y <= h->i_threadslice_end; mb_y++ )
                 fdec_filter_row( h, mb_y, 1 );
-            x264_threadslice_cond_broadcast( h, 2 );
-            /* Do the first row of hpel, now that the previous slice is done */
-            if( h->i_thread_idx > 0 )
+
+            if( h->i_thread_idx == 0 ) {
+                x264_threadslice_cond_broadcast( h, 2 );
+            }
+            else
             {
                 x264_threadslice_cond_wait( h->thread[h->i_thread_idx-1], 2 );
+                x264_threadslice_cond_broadcast( h, 2 );
+                /* Do the first row of hpel, now that the previous slice is done */
                 fdec_filter_row( h, h->i_threadslice_start + (1 << SLICE_MBAFF), 2 );
             }
         }
